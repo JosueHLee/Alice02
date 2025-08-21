@@ -7,7 +7,7 @@ import ChatHome from '@/views/ChatHome.vue'
 import SetA from '@/components/Set/SetA.vue'
 import UserEdit from '@/components/User/UserEdit.vue'
 import Feedback from '@/components/FeedBack/FeedBackA.vue'
-import ItemSearch from '@/components/Item/ItemSearch.vue'
+import SearchResult from '@/views/SearchResult.vue'
 import Admin from '@/components/Admin/AdminA.vue'
 import TradeMain from '@/views/TradeMain.vue'
 import TradeCheck from '@/components/Trade/TradeCheck.vue'
@@ -32,7 +32,7 @@ const routes = [
   {
     path: '/search/:key',
     name: 'Search',
-    component: ItemSearch
+    component: SearchResult
   },
 
   {

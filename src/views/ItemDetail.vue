@@ -46,7 +46,7 @@ import { mapState } from 'vuex';
     },
     components: {
       ItemDesc,
-      ItemRecommand
+      ItemRecommand,
     },
     computed: {
       ...mapState(['user'])

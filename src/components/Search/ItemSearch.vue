@@ -5,6 +5,9 @@
 
       </ItemCardWithUser>
     </el-space>
+      
+  </div>
+  <div class="RankContainer">
   </div>
   <el-text v-if="comeToEnd" class="display-center" type="info" size="large">
     已经到底了

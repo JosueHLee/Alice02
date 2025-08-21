@@ -135,12 +135,16 @@ Spring 框架被划分为多个模块。应用程序可以选择他们需要的�
         
     </el-col>
   </el-row>
+  <ItemEdit :productid="product.id" :itemEditDialogVisable="itemEditDialogVisable" @itemEditDialogClose="itemEditDialogVisable = false">
+
+  </ItemEdit>
 </template>
 <script>
 import { allProducts as publishedProduct, users} from '@/test'
 import { state_text, state_color } from '@/global/global'
 import { computed } from 'vue'
 import { mapState } from 'vuex'
+import ItemEdit from './ItemEdit.vue'
   export default {
     data() {
       return {
@@ -151,6 +155,7 @@ import { mapState } from 'vuex'
                 ],
         state_text,
         state_color,
+        itemEditDialogVisable: false,
       }
     },
     props:['productId'],
@@ -196,7 +201,7 @@ import { mapState } from 'vuex'
         console.log("clickFollwed!")
       },
       clickEdit(){
-        window.open("", "chat")
+        this.itemEditDialogVisable = true
       },
       clickOff(){
         console.log("clickFollwed!")
@@ -218,6 +223,9 @@ import { mapState } from 'vuex'
         return state.user
       }
     })
+  },
+  components: {
+    ItemEdit,
   }
 }
 </script>

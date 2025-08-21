@@ -43,7 +43,9 @@
         </el-row>
     </template>
   </el-card>
-  
+  <ItemEdit :productid="product.id" :itemEditDialogVisable="itemEditDialogVisable" @itemEditDialogClose="itemEditDialogVisable = false">
+
+  </ItemEdit>
 </template>
 <script>
 import http from '../../global/http'
@@ -51,6 +53,7 @@ import global from '../../global/global'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { state_text, state_color} from '../../global/global'
 import router from '@/router'
+import ItemEdit from './ItemEdit.vue'
   export default {
     data() {
       return {
@@ -61,11 +64,13 @@ import router from '@/router'
         state_color,
         picUrl: "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
         // picUrl: global.serverUrl + '/api/products/' + picId,
+        itemEditDialogVisable: false,
       }
     },
     props: ['product','editable']
       //需要 商品名，商品图片(实际是商品id)，商品价格，商品状态,收藏数量
     ,
+    emits:['connectFailed'],
     async created() {
       this.stateType = this.product.state === 1? 'danger':'primary'
       await http.get('/api/products/pics/' + this.product.id)
@@ -93,7 +98,7 @@ import router from '@/router'
         window.open(href, '_blank')
       },
       clickEdit(){
-        console.log("Edit!")
+        this.itemEditDialogVisable = true
       },
       clickOff(){
         ElMessageBox.confirm(
@@ -141,6 +146,9 @@ import router from '@/router'
             })
           })
       }
+    },
+    components: {
+      ItemEdit
     }
   }
 </script>

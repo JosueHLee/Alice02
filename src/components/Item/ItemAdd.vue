@@ -15,6 +15,17 @@
       <el-form-item label="库存:">
         <el-input-number v-model="item.amount" :min="1" :max="10000" class="price-length"/>
       </el-form-item>
+      <el-form-item label="标签:">
+        <el-select v-model="item.type" placeholder="请选择商品标签" style="width: 240px">
+          <el-option
+            v-for="(type, index) in first_type"
+            :key="index"
+            :label="type"
+            :value="index"
+          />
+        </el-select>
+      </el-form-item>
+      
       <el-form-item label="图片:">
         <!-- 上传商品图片 -->
         <el-upload
@@ -53,16 +64,18 @@
 
 <script>
 import http from "../../global/http"
-
+import { first_type } from "@/global/global"
 export default {
   data(){
     return {
       //用户模型
       pics: [],
+      first_type,
       item: {
         name: '',
         price: 2.00,
         amount: 1,
+        type: undefined,
         prof: '',
       },
       rules: {
@@ -74,6 +87,9 @@ export default {
           { required: true, message: '请输入商品描述', trigger: 'blur'},
           { min: 10, max: 500, message: '商品描述长度为 10 到 500 个字符', trigger: 'blur'}
         ],
+        type: [
+          { required: true, message: '请选择商品标签', trigger: 'blur'},
+        ]
       }
     }
   },
@@ -119,6 +135,7 @@ export default {
 </script>
 <style scoped>
 @media screen and (min-width: 960px) {
+  
   ::v-deep .avatar-uploader .el-upload  {
     border: 0;
   }

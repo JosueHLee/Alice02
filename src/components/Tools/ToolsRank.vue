@@ -1,40 +1,23 @@
 <template>
-<el-menu
+
+  <el-menu
     v-model="internalIndex"
-    default-active="1"
-    :collapse="iscollapse"
-    @hover="handleHover"
+    mode="horizontal"
+    class="nav"
     @select="emit('update:activeIndex', $event)"
   >
-    <el-menu-item index="1">
-        <el-icon><SortUp /></el-icon>
-        <template #title><span>价格从低到高</span></template>
-    </el-menu-item>
-
-    <el-menu-item index="-1">
-      <el-icon><SortDown /></el-icon>
-      <template #title><span>价格从高到低</span></template>
-    </el-menu-item>
-
-    <el-menu-item index="2">
-      <el-icon><Top /></el-icon>
-      <template #title><span>发布从新到旧</span></template>
-    </el-menu-item>
-
-    <el-menu-item index="-2">
-      <el-icon><Bottom /></el-icon>
-      <template #title><span>价格从旧到新</span></template>
-    </el-menu-item>
-
+    <el-menu-item index="0">发布从新到旧</el-menu-item>
+    <el-menu-item index="1">发布从旧到新</el-menu-item>
+    <el-menu-item index="2">价格从低到高</el-menu-item>
+    <el-menu-item index="3">价格从高到低</el-menu-item>
   </el-menu>
+  <ElDivider class="bottomDivider">
+  </ElDivider>
 </template>
 
 <script setup>
-import {ref,defineProps,defineEmits,watch} from 'vue'
-const iscollapse = ref(true)
-const handleHover = () => {
-  iscollapse.value = false
-}
+import { ElDivider } from 'element-plus'
+import { ref,defineProps,defineEmits, watch} from 'vue'
 const props = defineProps(['activeIndex'])
 const emit = defineEmits(['update:activeIndex'])
 const internalIndex = ref(props.activeIndex)
@@ -44,5 +27,16 @@ watch(() => props.activeIndex, (newVal) => {
 </script>
 
 <style scoped>
+@media screen and (min-width: 960px) {
+  .nav {
+    width: 100%;
+    display: flex;
+    border-bottom: none !important;
+    background-color: aliceblue;
+  }
+  .bottomDivider {
+    margin-top: 0px !important;
+  }
+}
 
-</style>    
+</style>

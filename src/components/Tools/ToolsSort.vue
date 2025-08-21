@@ -1,5 +1,4 @@
 <template>
-  
   <el-menu
     v-model="internalIndex"
     mode="horizontal"
@@ -37,11 +36,8 @@ watch(() => props.activeIndex, (newVal) => {
     width: 100%;
     background-color: rgb(197.7, 225.9, 255);
     display: flex;
-    box-shadow: var(--el-box-shadow-light) !important;
-  }
-  :deep(.el-menu--horizontal  .el-menu-item) {
-    
-    border-bottom: 0px;
+    border-bottom: none !important;
+    box-shadow:var(--el-box-shadow-light)!important;
   }
   :deep(.el-menu-item) {
     width: 300px;

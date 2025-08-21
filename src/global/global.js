@@ -21,15 +21,15 @@ export default{
   
 }
 export const state_text = [
-          '销售中',
-          '已售罄',
-          '已下架',
-        ]
+  '销售中',
+  '已售罄',
+  '已下架',
+]
 export const state_color = [
-          'primary',
-          'warning',
-          'danger'
-        ]
+  'primary',
+  'warning',
+  'danger'
+]
 export const first_type = [
   '教材教辅',
   '文具用品',

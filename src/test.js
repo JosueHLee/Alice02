@@ -36,6 +36,7 @@ for(let i = 0; i < 100; i++)
     state: undefined,
     want: undefined,
     userId: undefined,
+    pics: ['https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png']
   }
   product.id = i
   product.name = 'item' + i
@@ -57,6 +58,7 @@ for(let i = 0; i < 100; i++)
     state: undefined,
     want: undefined,
     userId: undefined,
+    pics: ['https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png']
   }
   product.id = i + products1.length
   product.name = 'product' + i
