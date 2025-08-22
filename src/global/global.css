@@ -16,10 +16,10 @@
   /* 内容区域宽度 */
   /* 导航栏完全展开 */
   /* 20px是滚动条的像素 */
-  --large-pc-screen-content-width: calc(100vw - var(--sidebar-width-unfold) - 20px);
-  --pc-screen-content-width: calc(100vw - var(--sidebar-width-unfold) -20px);
+  --large-pc-screen-content-width: calc(100vw - var(--sidebar-width-unfold));
+  --pc-screen-content-width: calc(100vw - var(--sidebar-width-unfold));
   /* 导航栏折叠 */
-  --horizontal-pad-screen-content-width: calc(100vw - var(--sidebar-width-fold) -20px);
+  --horizontal-pad-screen-content-width: calc(100vw - var(--sidebar-width-fold));
   --horizontal-phone-screen-content-width: calc(100vw - var(--sidebar-width-fold));
   /* 导航栏在上方折叠 */
   --vertical-phone-screen-content-width: calc(100vw);
@@ -45,9 +45,9 @@
   --first-title-color: #606266;
   --second-title-color: #909399;
 }
-.App {
-  min-width: var(--pc-screen-min-width);
-}
+/* .App {
+  min-width: calc(var(--pc-screen-min-width) - 20px);
+} */
 .full-width {
   width: 100%;
 }
@@ -64,7 +64,8 @@
   min-height:650px;
   margin-left: 20%;
   margin-right: 20%;
-  margin-bottom: var(--wide-slot-width);
+  margin-top: calc(var(--wide-slot-width) * 2);
+  margin-bottom: calc(var(--wide-slot-width) * 2);
   width: 55%;
   border: 2px;
   border-radius: 4px;

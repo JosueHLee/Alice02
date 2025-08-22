@@ -14,7 +14,7 @@
       </item-desc>
     </div>
     <!-- 若是自己的商品不用推荐其他 -->
-    <div class="footer" v-if="user.userId = item.userId">
+    <div class="footer" v-if="user.userId === item.userId">
         <item-recommand>
 
         </item-recommand>

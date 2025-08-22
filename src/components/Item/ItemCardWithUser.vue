@@ -103,6 +103,7 @@ import ItemEdit from './ItemEdit.vue'
         if(users[i].userId === this.product.userId)
         {
           this.owner = users[i]
+          break
         }
       }
       this.stateType = this.product.state === 1? 'danger':'primary'

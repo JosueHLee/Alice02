@@ -25,6 +25,10 @@ export const state_text = [
   '已售罄',
   '已下架',
 ]
+export const pay_methods = [
+  '线上支付',
+  '线下支付'
+]
 export const state_color = [
   'primary',
   'warning',

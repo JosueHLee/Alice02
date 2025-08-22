@@ -1,76 +1,81 @@
 <template>
-  <div class="step" style="height: 500px;">
-    <el-steps direction="vertical" :active="1">
-      <el-step title="Step 1" />
-      <el-step title="Step 2" />
-      <el-step title="Step 3" />
-    </el-steps>
-  </div >
-  <div v-if="item" class="content">
-    <el-descriptions width="50px" :column="1" style="width: 80%;background-color: rgb(159.5, 206.5, 255);margin-top: 40px;">
-    <el-descriptions-item style="width: 50%;" label="名称" >{{ item.name }}</el-descriptions-item>
-    <el-descriptions-item label="价格">{{ item.price }}</el-descriptions-item>
-    <el-descriptions-item label="使用状态">{{ usage[item.usageStatus] }}</el-descriptions-item>
-    <el-descriptions-item label="描述">
-      {{ item.description }}
-    </el-descriptions-item>
-  </el-descriptions>
-  <div style="width: 80%;display: flex;align-items: center;justify-content: center; margin-top: 20px;">
-    <el-button type="primary" @click="$router.push({ name: 'TradePay', params: { uid, itemid} })">创建订单</el-button>
-    <el-button type="danger" @click="$router.push({ name: 'ItemDetail', params: { itemid} })">取消</el-button>
+  <div v-if="item !== null">
+    <el-row>
+      <el-col :span="12">
+        <el-image class="img" :src="pics.url" fit="cover" />
+      </el-col>
+      <el-col>
+
+      </el-col>
+    </el-row>
+    <el-row>
+      <el-select v-model="method" placeholder="选择支付方式" style="width: 240px">
+        <el-option
+          v-for="(pay_method,index) in pay_methods"
+          :key="index"
+          :label="pay_method"
+          :value="index"
+        />
+      </el-select>
+    </el-row>
+      <el-button type="primary" @click="clickPay">去支付</el-button>
   </div>
-    
-  </div>
+  <el-dialog v-model="resultDialogVisible" title="是否支付成功" width="500" align-center :close-on-click-modal="false">
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button type="danger" @click="resultDialogVisible = false">否</el-button>
+        <el-button type="success" @click="paySucess">
+          是
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
-
-<script setup>
-import axios from 'axios'
-import {ref} from 'vue'
-const item = ref(null)
-import global from '@/global/global'
-import { ElNotification } from 'element-plus'
-import { useRoute } from 'vue-router'
-console.log('TradeCheck.vue loaded');
-const usage = ref(['全新', '轻微使用痕迹', '有明显使用痕迹', '破损不堪'])
-const route = useRoute()
-const uid = route.params.uid
-const itemid = route.params.itemid
-axios.get(global.serverUrl + '/api/item/CheckItem', { params: { itemid } })
-  .then(result => {
-    if (result.data.code === +1) {
-      item.value = result.data.result.body
-      // Handle successful item retrieval
-    } 
-      else
-      ElNotification({
-            title: '获取商品信息失败',
-            message: result.data.msg,
-            type: 'warning',
-          })
-    }).catch(error => {
-      item.value = {id: 0, iname: 'Yummy hamburger',iusage:'全新', price:20,  ipics:[{"url":"https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"}],idescription:"这是一个汉堡"}
-      // item.value = null
-      ElNotification({
-        title: '网络异常',
-        message: error.toString(),
-        type: 'error',
-      })
-
-    })
-    
-
+<script>
+import { allProducts } from '@/test';
+import { pay_methods } from '@/global/global';
+import router from '@/router';
+import { ElMessage } from 'element-plus';
+  export default {
+    data() {
+      return {
+        item: null,
+        pics: undefined,
+        method: undefined,
+        pay_methods,
+        resultDialogVisible: false,
+      }
+    },
+    props:['productid'],
+    created() {
+      
+      for(let i = 0; i < allProducts.length; i++)
+      {
+        if(this.productid == allProducts[i].id)
+        {
+          this.item = allProducts[i]
+          this.pics = {
+            name: '',
+            url: this.item.pics[0]
+          }
+          
+          break
+        }
+      }
+    },
+    methods: {
+      clickPay() {
+        const href = router.resolve({name: 'TradePay', params: this.productid}).href
+        window.open(href, "_blank")
+        this.resultDialogVisible = true
+      },
+      paySucess() {
+        this.resultDialogVisible = false
+        ElMessage.success("支付成功，即将跳转到订单详情页")
+      }
+    }
+  }
 </script>
+<style>
 
-<style scoped>
-.step {
-  width: 10%;
-  margin-right: 20px;
-}
-.content {
-  width:80%;
-  height: 450px;
-  background-color: rgb(216.8, 235.6, 255);
-  padding-top: 5%;
-  padding-left: 10%
-}
 </style>

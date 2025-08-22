@@ -9,9 +9,8 @@ import UserEdit from '@/components/User/UserEdit.vue'
 import Feedback from '@/components/FeedBack/FeedBackA.vue'
 import SearchResult from '@/views/SearchResult.vue'
 import Admin from '@/components/Admin/AdminA.vue'
-import TradeMain from '@/views/TradeMain.vue'
+import PayPage from '@/views/PayPage.vue'
 import TradeCheck from '@/components/Trade/TradeCheck.vue'
-import TradePay from '@/components/Trade/TradePay.vue'
 import UserDetail from '@/components/User/UserDetail.vue'
 import UserFollowed from '@/components/User/UserFollowed.vue'
 import FollowMe from '@/components/User/FollowMe.vue'
@@ -21,6 +20,7 @@ import OrderSold from '@/components/Order/OrderSold.vue'
 import OrderDetail from '@/components/Order/OrderDetail.vue'
 import ItemFavourite from '@/components/Item/ItemFavourite.vue'
 import ItemAdd from '@/components/Item/ItemAdd.vue'
+import PayDemo from '@/components/Trade/PayDemo.vue'
 // import TradePay from '@/components/Trade/TradePay.vue' // Uncomment if you have this component
 import { user_menu_name } from '@/global/global'
 const routes = [
@@ -117,24 +117,25 @@ const routes = [
     name: 'Admin',
     component: Admin
   },
-
-  { 
-    path: '/Trade/:uid/:itemid',
+  {
+    path: '/Trade/:orderid',
     name: 'Trade',
-    component: TradeMain,
+    component: PayPage,
     children:[
-      { path: '',
+      { 
+        path: '',
           name: 'TradeCheck',
           component: TradeCheck
-        },
-      { path: 'Pay',
-        name: 'TradePay',
-        component: TradePay
-        }
-    ]
-  }
+      },
       
-
+      
+    ]
+  },
+  { 
+    path: '/Pay/:orderid',
+    name: 'TradePay',
+    component: PayDemo
+  },
 ]
 
 const router = createRouter({

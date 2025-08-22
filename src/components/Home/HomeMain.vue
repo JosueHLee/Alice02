@@ -45,6 +45,20 @@ export default{
 </script>
 
 <style>
+@media screen and (min-width: 770px) {
+  .HomeMain {
+    margin-top: var(--wide-slot-width);
+    margin-bottom: var(--wide-slot-width);
+    background-color: rgb(217, 236, 255) !important;
+    border-radius: 4px
+  }
+  .item-container {
+    padding-top: var(--wide-slot-width);
+    padding-bottom: var(--wide-slot-width);
+    box-shadow: var(--el-box-shadow-lighter);
+    border-radius: 4px
+  }
+}
 @media screen and (min-width: 960px) {
   .HomeMain {
     margin-top: var(--wide-slot-width);

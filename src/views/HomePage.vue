@@ -32,7 +32,4 @@
 </script>
 
 <style>
-/* 小屏电脑样式 */
-@media screen and (min-width: 960px) {
-}
 </style>

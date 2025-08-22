@@ -137,6 +137,48 @@ import { user_menu_name } from '@/global/global'
 </script>
 
 <style scoped>
+  @media screen and (min-width: 770px) {
+    .HomeHeader {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      box-shadow: var(--el-box-shadow-light) !important;
+      background-color: rgb(121.3, 187.1, 255);
+    }
+    .HomeHeader > a {
+      display: flex;
+      margin-left: 10%;
+      height: 100%;
+      width: auto;
+      align-items: center;
+      min-width: 0;
+      cursor: pointer
+    }
+    #HomePic {
+      min-width: 100px;
+      height: 100px;
+      width: 100px;
+    }
+    .Search {
+      margin-left: 6%;
+      width: 50%;
+    }
+    .Search-input .el-input__inner {
+      border-radius: 50px !important;
+    }
+    .Operation {
+      margin-left: 4%;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+    }
+    .el-link {
+      margin-left: 10%;
+      font-size: 1.15rem;
+    }
+  }
   @media screen and (min-width: 960px) {
     .HomeHeader {
       height: 100%;
@@ -179,5 +221,5 @@ import { user_menu_name } from '@/global/global'
       font-size: 1.15rem;
     }
   }
-  
+
 </style>

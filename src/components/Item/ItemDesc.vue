@@ -138,13 +138,30 @@ Spring 框架被划分为多个模块。应用程序可以选择他们需要的�
   <ItemEdit :productid="product.id" :itemEditDialogVisable="itemEditDialogVisable" @itemEditDialogClose="itemEditDialogVisable = false">
 
   </ItemEdit>
+  <el-dialog
+    v-model="amountDialogVisible"
+    title="购买数量"
+    align-center
+    width="500"
+    :close-on-click-modal="false"
+  >
+    <el-input-number v-model="amount" :min="1" :max="product.amount" />
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="clickAmount">
+          确定
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 <script>
 import { allProducts as publishedProduct, users} from '@/test'
 import { state_text, state_color } from '@/global/global'
-import { computed } from 'vue'
 import { mapState } from 'vuex'
 import ItemEdit from './ItemEdit.vue'
+import router from '@/router'
   export default {
     data() {
       return {
@@ -156,17 +173,20 @@ import ItemEdit from './ItemEdit.vue'
         state_text,
         state_color,
         itemEditDialogVisable: false,
+        amountDialogVisible: false,
+        amount: 1,
       }
     },
     props:['productId'],
     created(){
       // 根据productId查询用户和商品信息
-      
+
       for(let i = 0; i < publishedProduct.length; i++)
       {
         if(publishedProduct[i].id === this.productId)
         {
           this.product = publishedProduct[i]
+          break
         }
       }
       for(let i = 0; i < users.length; i++)
@@ -177,10 +197,12 @@ import ItemEdit from './ItemEdit.vue'
           return
         }
       }
+      
     },
     methods: {
       clickUser() {
-        window.open("../userhome/" + this.owner.username + '/userDetail',"_blank")
+        const href = router.resolve({name: 'UserHome', params: {uName: this.owner.username}}).href
+        window.open(href, '_blank')
       },
       clickChat() {
         window.open("", "chat")
@@ -192,7 +214,7 @@ import ItemEdit from './ItemEdit.vue'
         console.log("clickedUnFolled")
       },
       clickBuy(){
-        window.open("", "chat")
+        this.amountDialogVisible = true
       },
       clickWant(){
         console.log("clickFollwed!")
@@ -205,24 +227,18 @@ import ItemEdit from './ItemEdit.vue'
       },
       clickOff(){
         console.log("clickFollwed!")
+      },
+      clickAmount() {
+        this.itemEditDialogVisable = false
+        //创建订单，获取订单id
+        
+        //测试时假设订单号和商品号相同，方便展示
+        const href = router.resolve({name: 'Trade', params: {orderid: this.product.id}}).href
+        window.open(href, '_blank')
       }
   },
   computed: {
-    ...mapState({
-      // owner(state) {
-      //   if(this.product.userId === state.user?.userId)
-      //   {
-      //     return state.user
-      //   }
-      //   else
-      //   {
-      //     return otherUser
-      //   }
-      // },
-      user(state) {
-        return state.user
-      }
-    })
+    ...mapState(['user'])
   },
   components: {
     ItemEdit,
