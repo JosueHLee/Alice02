@@ -21,8 +21,10 @@ import OrderDetail from '@/components/Order/OrderDetail.vue'
 import ItemFavourite from '@/components/Item/ItemFavourite.vue'
 import ItemAdd from '@/components/Item/ItemAdd.vue'
 import PayDemo from '@/components/Trade/PayDemo.vue'
+import UserSecurity from '@/components/User/UserSecurity.vue'
 // import TradePay from '@/components/Trade/TradePay.vue' // Uncomment if you have this component
 import { user_menu_name } from '@/global/global'
+import { component } from 'v-viewer'
 const routes = [
   { 
     path: '/',
@@ -84,6 +86,11 @@ const routes = [
         name: user_menu_name[8],
         component: ItemAdd,
       },
+      {
+        path: 'security',
+        name: user_menu_name[9],
+        component: UserSecurity,
+      }
     ]
   },
   {

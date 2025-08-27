@@ -2,7 +2,7 @@
   <el-dialog
     v-model="diaglogVisable"
     title="注册"
-    width="40%"
+    width="50%"
     :close-on-click-modal="false"
     center
     align-center
@@ -11,58 +11,120 @@
       ref="ruleFormRef"
       :model="user"
       :rules="rules"
-      label-width="auto"
-      hide-required-asterisk=true
+      label-width="30%"
+      :hide-required-asterisk="true"
       size="large"
     >
       <el-form-item class="InputRow" label="用户名" prop="username">
         <el-input v-model="user.username" />
       </el-form-item>
-      <el-form-item class="InputRow" label="密码" prop="password">
-        <el-input v-model="user.password" />
+      <el-form-item class="InputRow" label="电话号码" prop="tel">
+        <el-input v-model="user.tel" />
       </el-form-item>
-      <el-form-item class="InputRow" label="确认密码" prop="password">
-        <el-input v-model="user.password" />
+      <el-form-item class="InputRow" label="密码" prop="password" >
+        <el-input v-model="user.password" show-password/>
       </el-form-item>
-      <el-form-item>
+      <el-form-item class="InputRow" label="确认密码" prop="checkpass" >
+        <el-input v-model="user.checkpass" show-password/>
+      </el-form-item>
+      <div class="display-center">
         <el-button type="primary" @click="onSubmit">提交</el-button>
         <el-button @click="diaglogVisable=false">取消</el-button>
-      </el-form-item>
+      </div>
     </el-form>
     
   </el-dialog>
 </template>
 
 <script>
+import axios from 'axios'
+import { serverUrl } from '../../global/global.js'
+import { ElMessage } from 'element-plus'
   export default {
     props: {
       registerDiaVisable: Boolean
     },
+    emits: ['registerDialogClose'],
     data() {
       return {
         // 用户输入表单
         user: {
           username: '',
+          tel: '',
           password: '',
           checkpass: '',
         },
         rules: {
           username: [
-            { required: true, message: '用户名不能为空', trigger: 'blur'}
+            { validator: (rule, value,callback) => {
+              if(value === '')
+              {
+                callback(new Error( '请输入用户名'))
+              }
+              else if(!/^(?!\d+$)[A-Za-z0-9\u4e00-\u9fa5]+$/.test(value))
+              {
+                callback(new Error('用户名由汉字、字母、数字组成,且非纯数字'))
+              }
+              else if(value.length < 4 || value.length > 30)
+              {
+                callback(new Error('用户名长度为4-30'))
+              }
+              else
+              {
+                callback()
+              }
+              }, trigger: 'blur'}
+          ],
+          tel: [
+            { required: true, message: '电话号码不能为空', trigger: 'blur'},
+            { pattern:/^1[34578][0-9]{9}$/, message: '请输入正确的电话号码', trigger: 'blur'}
           ],
           password: [
             { required: true, message: '密码不能为空', trigger: 'blur'},
+            { max: 20, message: "不超过20字符", trigger: 'blur'}
           ],
           checkpass: [
-            { required: true, message: '请再次输入密码', trigger: 'blur'},
+            { validator: (rule, value, callback) => {
+              if(value === '')
+              {
+                callback(new Error("请再输入一次密码"))
+              }
+              else if(value !== this.user.password)
+              {
+                callback(new Error("两次输入的密码不一致"))
+              }
+              else
+              {
+                callback()
+              }
+              }, trigger: 'blur'}
           ]
         }
       }
     },
     methods: {
-      onSubmit() {
-        console.log('register submit')
-        this.diaglogVisable = false
+      async onSubmit() {
+        const post_user = {
+          username: this.user.username,
+          pwd: this.user.password,
+          tel: this.user.tel
+        }
+        await axios.post(serverUrl + '/api/users/register',JSON.stringify(post_user),
+          {headers: {'Content-Type': 'application/json'}})
+        .then(result => {
+          if(result.data.code === 1)
+          {
+            ElMessage.success(result.data.msg)
+            this.diaglogVisable = false
+          }
+          else
+          {
+            ElMessage.error(result.data.msg)
+          }
+        })
+        .catch(error => {
+          ElMessage.error("服务器繁忙请稍后再试")
+        })
       }
     },
     computed: {

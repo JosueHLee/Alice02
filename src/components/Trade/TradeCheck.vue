@@ -12,6 +12,7 @@
         <el-col :span="16" :offset="1">
           <div class="data">
             <el-row>{{ item.name }}</el-row>
+            <!-- 根据订单数量来，此处只是模拟 -->
             <el-row>{{ "&times;" + item.amount }}</el-row>
             <el-row>总计:<span class="price">{{ "￥" + item.price }}</span></el-row>
           </div>

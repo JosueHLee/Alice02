@@ -85,7 +85,6 @@ html {
 body {
   margin-right: calc(100% - 100vw);
   background-color: aliceblue;
-  padding-bottom: var(--wide-slot-width);
 }
 /* 没有导航栏时的1200px内容宽度 */
 .single-main-width {

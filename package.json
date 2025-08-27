@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
+    "async-validator": "^4.2.5",
     "axios": "^1.9.0",
     "core-js": "^3.8.3",
     "element-plus": "^2.9.10",

@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import { createStore } from 'vuex'
-import ElementPlus from 'element-plus'
+import ElementPlus, { ElMessage } from 'element-plus'
 import Router from './router'
 import 'element-plus/dist/index.css'
 import App from './App.vue'
@@ -11,15 +11,19 @@ import VueCropper from 'vue-cropper';
 import 'vue-cropper/dist/index.css'
 import '../src/global/global.css'
 import { users as test_user } from './test'
+import http from './global/http'
+import { serverUrl } from './global/global'
 window.__VUE_PROD_DEVTOOLS__ = false;
 window.__VUE_PROD_HYDRATION_MISMATCH_DETAILS__ = false;
 
-//用户模型
-localStorage.setItem('token', '1')
-console.log()
-//如果请求失败，则删除token
-localStorage.setItem('user', JSON.stringify(test_user[0]))
+// //用户模型
+// localStorage.setItem('token', '1')
+// console.log()
+// //如果请求失败，则删除token
+// localStorage.setItem('user', JSON.stringify(test_user[0]))
 
+// localStorage.removeItem('user')
+// localStorage.removeItem('token')
 const store = createStore({
   state() {
     return {
@@ -28,34 +32,41 @@ const store = createStore({
     }
   },
   mutations: {
-    login (state,user,token) {
+    login (state,user) {
+      
+      //将数据存在localStorage
+      localStorage.setItem('user', JSON.stringify(user))
       //将后端传来的数据付给state
       state.user = user
-      state.token = token
-      //将数据存在localStorage
-      localStorage.setItem('user', user)
-      localStorage.setItem('token', token)
+      state.token = localStorage.getItem('token')
     },
     logout (state) {
-      localStorage.setItem('token', null)
-      localStorage.setItem('user', null)
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
       state.user = null
       state.token = null
     },
     updateUser(state,user){
       // 应使用异步调用
-      console.log('save user!')
+      state.user = user
+      localStorage.setItem('user', JSON.stringify(user))
     }, 
   },
   actions: {
-    updateUser(context,user) {
-      return new Promise((resolve,reject) => {
-        if(user.username === '1')
+    async updateUserProfile(context,user) {
+      await http.put(serverUrl + '/api/users/prof',JSON.stringify(user), {headers: {"Content-Type":"application/json"}})
+      .then(result => {
+        if(result.data.code === 1)
         {
-          resolve()
+          context.commit('updateUser', user)
+          return result.data
         }
         else
-          reject()
+          return new Error(result.data.msg)
+      })
+      .catch(error =>
+      {
+        return new Error('网络繁忙，请稍后再试')
       })
     }
   }

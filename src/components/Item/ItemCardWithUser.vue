@@ -1,5 +1,5 @@
 <template>
-  <el-card class="product" @click="onClick">
+  <el-card class="product" @click="onClick" v-if="picUrl">
     <template #header>
       <el-row>
         <el-col :span="21">
@@ -45,7 +45,7 @@
         <!-- 用户头像 -->
         <el-col :span="5" class="display-center">
           <el-link type="info" underline="never" @click.stop="clickUser">
-              <el-avatar :size="30" :src="owner.picture_narrow" />
+              <el-avatar :size="30" :src="avatorUrl" />
           </el-link>
         </el-col>
         <el-col :span="19" class="display-center user-name">
@@ -67,7 +67,7 @@
 </template>
 <script>
 import http from '../../global/http'
-import global from '../../global/global'
+import global, { serverUrl } from '../../global/global'
 import { ElDivider, ElMessage, ElMessageBox } from 'element-plus'
 import { users } from '@/test'
 import router from '@/router'
@@ -89,8 +89,9 @@ import ItemEdit from './ItemEdit.vue'
           'warning',
           'danger'
         ],
-        picUrl: "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
-        // picUrl: global.serverUrl + '/api/products/' + picId,
+        // picUrl: "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
+        picUrl: '',
+        avatorUrl: '',
         itemEditDialogVisable: false,
       }
     },
@@ -98,16 +99,29 @@ import ItemEdit from './ItemEdit.vue'
       //需要 商品名，商品图片(实际是商品id)，商品价格，商品状态,收藏数量
     ,
     async created() {
-      for(let i = 0; i < users.length; i++)
-      {
-        if(users[i].userId === this.product.userId)
+      await http.get(serverUrl + '/api/users/prof/' + this.product.sellerId)
+      .then(result => {
+        if(result.data.code === 1)
         {
-          this.owner = users[i]
-          break
+          this.owner = {
+            ...result.data.data,
+            picture: serverUrl + '/api/users/icon/' + result.data.data.userId,
+            picture_narrow: serverUrl + '/api/users/icon/' + result.data.data.userId
+          }
+          http.get(this.user.picture, { responseType: "blob"})
+          .then(result => {
+            if(result.data != null)
+              this.avatorUrl = URL.createObjectURL(result.data)
+            else
+              return null
+          })
         }
-      }
+      })
+      .catch(error => {
+        this.$emit('connectFailed',error)
+      })
       this.stateType = this.product.state === 1? 'danger':'primary'
-      await http.get('/api/products/pics/' + this.product.id)
+      await http.get(serverUrl + '/api/products/pics/' + this.product.id)
       .then(result => {
         if(result.data.code == 1)
         {
@@ -119,6 +133,10 @@ import ItemEdit from './ItemEdit.vue'
               break
             }
           }
+          http.get(serverUrl + '/api/products/' + this.picId)
+          .then(result => {
+            this.picUrl = URL.createObjectURL(result.data)
+          })
         }
       })
       .catch(error => {

@@ -47,6 +47,7 @@ import ItemCardWithoutUser from './ItemCardWithoutUser.vue';
   .main-content {
     width: var(--large-pc-screen-content-width);
     margin-left: calc(var(--sidebar-width-unfold) / 2);
+    padding: 0%;
   }
   .option {
     display: flex;

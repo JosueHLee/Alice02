@@ -18,16 +18,25 @@
         >
             <el-image
               class="avatar"
-              :src="user.picture_narrow"
-              :preview-src-list="[user.picture]"
+              :src="picture"
+              :preview-src-list="[picture]"
             />
           
         </el-descriptions-item>
         <el-descriptions-item label="用户名">{{user.username}}</el-descriptions-item> 
-        <el-descriptions-item label="性别"><el-tag size="small">{{ gender[user.gender] }}</el-tag></el-descriptions-item>
-        <el-descriptions-item label="手机号">{{ user.tel || '空'}}</el-descriptions-item>
-        <el-descriptions-item label="邮箱">{{ user.email || '空 '}}</el-descriptions-item>
-        <el-descriptions-item label="个人简介">{{ user.prof || '空' }}</el-descriptions-item>
+        <el-descriptions-item label="性别"><el-tag size="small">{{ user.gender }}</el-tag></el-descriptions-item>
+        <el-descriptions-item label="手机号">
+        <el-tag v-if="!user.tel" type="info">空</el-tag>
+        <span v-else>{{ user.tel }}</span>
+        </el-descriptions-item>
+        <el-descriptions-item label="邮箱">
+          <el-tag v-if="!user.email" type="info">空</el-tag>
+          <span v-else>{{ user.email }}</span>
+        </el-descriptions-item>
+        <el-descriptions-item label="个人简介">
+          <el-tag v-if="!user.prof" type="info">空</el-tag>
+          <span v-else>{{ user.prof }}</span>
+        </el-descriptions-item>
       </el-descriptions>
     </div>
 
@@ -76,29 +85,28 @@ import {useRoute, useRouter } from 'vue-router'
 import { ElNotification } from 'element-plus'
 import { throttle } from '@/global/global.js'
 import { users } from '../../test.js'
+import http from '../../global/http.js'
+import { mapState } from 'vuex'
   export default {
     data() {
       return {
         router: useRouter(),
         route: useRoute(),
-        user: null,
-        gender: [
-          '男',
-          '女',
-          '未公开'
-        ],
+        // user: null,
         publishedProducts:[],
         soldProducts: [],
+        picture: null,
       }
     },
     created() {
-      for(let i = 0 ;i < users.length; i++)
-      {
-        if(users[i].username === this.route.params.uName)
-        {
-          this.user = users[i]
-        }
-      }
+      if(this.$store.state.token != null)
+      http.get(this.user.picture, { responseType: "blob"})
+      .then(result => {
+        if(result.data != null)
+          this.picture = URL.createObjectURL(result.data)
+        else
+          return null
+      })
       // 最多加载4个
       this.publishedProducts = test_pp.slice(0,4)
       this.soldProducts = test_sp.slice(0,4)
@@ -126,6 +134,9 @@ import { users } from '../../test.js'
         window.open('#','_blank')
       },
     },
+    computed: {
+      ...mapState(['user'])
+    }
   }
 </script>
 

@@ -17,39 +17,43 @@
         router
         :show-timeout="0"
       >
-        <el-menu-item index="userDetail">
+        <el-menu-item :index="user_menu_name[0]">
           <el-icon><User /></el-icon>
           <span>个人信息</span>
         </el-menu-item>
-        <el-menu-item index="editDetail">
+        <el-menu-item :index="user_menu_name[1]">
           <el-icon><EditPen /></el-icon>
-          <span>修改个人信息</span>
+          <span>修改个人简介</span>
         </el-menu-item>
-        <el-menu-item index="userFollowed">
+        <el-menu-item :index="user_menu_name[9]">
+          <el-icon><EditPen /></el-icon>
+          <span>账户安全</span>
+        </el-menu-item>
+        <el-menu-item :index="user_menu_name[2]">
           <el-icon><CircleCheck /></el-icon>
           <span>我关注的</span>
         </el-menu-item>
-        <el-menu-item index="fans">
+        <el-menu-item :index="user_menu_name[3]">
           <el-icon><View /></el-icon>
           <span>我的粉丝</span>
         </el-menu-item>
-        <el-menu-item index="published">
+        <el-menu-item :index="user_menu_name[4]">
           <el-icon><Goods /></el-icon>
           <span>我发布的</span>
         </el-menu-item>
-        <el-menu-item index="bought">
+        <el-menu-item :index="user_menu_name[5]">
           <el-icon><SoldOut /></el-icon>
           <span>我购买的</span>
         </el-menu-item>
-        <el-menu-item index="sold">
+        <el-menu-item :index="user_menu_name[6]">
           <el-icon><Sell /></el-icon>
           <span>我卖出的</span>
         </el-menu-item>
-        <el-menu-item index="favourite">
+        <el-menu-item :index="user_menu_name[7]">
           <el-icon><Star /></el-icon>
           <span>我收藏的</span>
         </el-menu-item>
-        <el-menu-item index="add">
+        <el-menu-item :index="user_menu_name[8]">
           <el-icon><CirclePlus /></el-icon>
           <span>发布商品</span>
         </el-menu-item>
@@ -109,11 +113,13 @@
 import { useRoute } from 'vue-router';
 import HomeHeader from '@/components/Home/HomeHeader.vue';
 import { mapState } from 'vuex';
+import { user_menu_name } from '@/global/global';
 export default {
   data(){
     return {
       route: useRoute(),
-      isHover: false
+      isHover: false,
+      user_menu_name,
     }
   },
   components: 

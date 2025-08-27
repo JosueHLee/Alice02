@@ -14,6 +14,9 @@
 <script>
 import ItemCardWithUser from '../Item/ItemCardWithUser.vue';
 import { products2 } from '@/test';
+import http from '../../global/http'
+import { serverUrl } from '@/global/global';
+import { ElMessage } from 'element-plus';
 export default{
   data() {
     return {
@@ -22,23 +25,56 @@ export default{
       comeToEnd: false,
       currentPage: 1,
       pageSize: 16,
+      total: 0
     }
   },
   components: {
     ItemCardWithUser,
   },
-  created() {
-    this.items = products2.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+  props:['index'],
+  async created() {
+    await http.get(serverUrl + '/api/products/lists',{params: {
+      page: this.currentPage,
+      size: this.pageSize,
+      category: this.sort,
+    }})
+    .then(result => {
+      if(result.data.data.records === null)
+        return
+      this.items = result.data.data.records
+      this.total = result.data.data.total
+    })
+    .catch(error => {
+      ElMessage.error("网络繁忙，请稍后再试")
+      console.log(error)
+    })
+    // this.items = products2.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
   },
   methods: {
-    load() {
-      if(this.currentPage * this.pageSize >= products2.length)
-      {
-        this.comeToEnd = true
-        return
-      }
+    async load() {
       this.currentPage++
-      this.items = this.items.concat(products2.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize))
+      await http.get(serverUrl + '/api/products/lists',{params: {
+      page: this.currentPage,
+      size: this.pageSize,
+      category: this.sort,
+      }})
+      .then(result => {
+        if(result.data.data.records === null)
+        {
+          this.comeToEnd = true
+          return
+        }
+        this.items = result.data.data.records
+        this.total = result.data.data.total
+      })
+      .catch(error => {
+        ElMessage.error("网络繁忙，请稍后再试")
+        console.log(error)
+      })
+      // this.items = this.items.concat(products2.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize))
+    },
+    getItem() {
+      
     }
   }
 }

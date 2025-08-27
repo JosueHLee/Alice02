@@ -3,7 +3,6 @@ import { reactive } from 'vue'
 export default{
   data(){
     return {
-      serverUrl: 'http://localhost:8086',
       user:reactive(JSON.parse(sessionStorage.getItem('user')) || {}),
 
       testUser: {
@@ -20,6 +19,7 @@ export default{
   }
   
 }
+export const serverUrl = 'http://localhost:8086'
 export const state_text = [
   '销售中',
   '已售罄',
@@ -56,7 +56,8 @@ export const user_menu_name = [
   'bought',
   'sold',
   'favourite',
-  'add'
+  'add',
+  'security'
 ]
 export function throttle(func, limit)
 {

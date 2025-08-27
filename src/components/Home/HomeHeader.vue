@@ -19,7 +19,7 @@
         </el-input>
       </div>
       <div class="Operation">
-        <el-button @click="loginDiaVisable=true" v-if="!$store.state.token">
+        <el-button @click="loginDiaVisable = true" v-if="!$store.state.token">
           登录
           <el-icon><User /></el-icon>
         </el-button>
@@ -27,7 +27,7 @@
         
         <el-dropdown v-if="$store.state.token" >
           <el-link underline="never" @click="clickMenu(0)">
-          <el-avatar :size="40" :src="$store.state.user.picture"/>
+          <el-avatar :size="40" :src="picture"/>
           <!-- 鼠标悬浮方法图片 -->
         </el-link>
           <template #dropdown>
@@ -36,9 +36,14 @@
               @click="clickMenu(0)">
                 个人信息
               </el-dropdown-item>
+              
               <el-dropdown-item 
               @click="clickMenu(1)">
-                修改个人信息
+                修改个人简介
+              </el-dropdown-item>
+              <el-dropdown-item 
+              @click="clickMenu(9)">
+                账户安全
               </el-dropdown-item>
               <el-dropdown-item 
               @click="clickMenu(2)">
@@ -99,16 +104,29 @@ import { ElDivider, ElMessage } from 'element-plus'
 import router from '@/router'
 import { useRoute } from 'vue-router'
 import { user_menu_name } from '@/global/global'
+import http from '../../global/http'
+import { mapState } from 'vuex'
   export default {
     components: {
       UserLogin
     },
     data() {
       return {
+        picture: null,
         searchText: '',
         loginDiaVisable: false,
         route: useRoute(),
       }
+    },
+    async mounted(){
+      if(this.$store.state.token != null)
+      await http.get(this.user.picture, { responseType: "blob"})
+      .then(result => {
+        if(result.data != null)
+          this.picture = URL.createObjectURL(result.data)
+        else
+          return null
+      })
     },
     methods: {
       clickSearch() {
@@ -131,8 +149,13 @@ import { user_menu_name } from '@/global/global'
       toChat() {
         const href = router.resolve({name: 'ChatHome', params: {uName: this.$store.state.user.username}}).href
         window.open(href, '_blank')
-      }
+      },
+      
     },
+    computed:
+    {
+      ...mapState(['user'])
+    }
   }
 </script>
 

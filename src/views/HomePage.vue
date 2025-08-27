@@ -5,13 +5,13 @@
 
       </HomeHeader>
     </div>
-    <div class="head-nav">
-      <ToolsSort>
+    <div class="head-nav" >
+      <ToolsSort @update="selectIndex">
 
       </ToolsSort>
     </div>
     <div class="main-page">
-      <HomeMain>
+      <HomeMain :index="index">
           
       </HomeMain>
     </div>
@@ -23,10 +23,20 @@
   import HomeMain from '@/components/Home/HomeMain.vue';
   import ToolsSort from '@/components/Tools/ToolsSort.vue';
   export default {
+    data(){
+      return {
+        index: 0,
+      }
+    },
     components: {
       HomeHeader,
       HomeMain,
       ToolsSort,
+    },
+    methods: {
+      selectIndex(activeIndex) {
+        this.index = activeIndex
+      }
     }
   }
 </script>

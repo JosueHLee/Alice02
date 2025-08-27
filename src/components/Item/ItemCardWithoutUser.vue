@@ -49,7 +49,7 @@
 </template>
 <script>
 import http from '../../global/http'
-import global from '../../global/global'
+import global, { serverUrl } from '../../global/global'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { state_text, state_color} from '../../global/global'
 import router from '@/router'
@@ -62,8 +62,8 @@ import ItemEdit from './ItemEdit.vue'
         stateType: 'primary',
         state_text,
         state_color,
-        picUrl: "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
-        // picUrl: global.serverUrl + '/api/products/' + picId,
+        // picUrl: "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
+        picUrl: '',
         itemEditDialogVisable: false,
       }
     },
@@ -73,7 +73,7 @@ import ItemEdit from './ItemEdit.vue'
     emits:['connectFailed'],
     async created() {
       this.stateType = this.product.state === 1? 'danger':'primary'
-      await http.get('/api/products/pics/' + this.product.id)
+      await http.get(serverUrl + '/api/products/pics/' + this.product.id)
       .then(result => {
         if(result.data.code == 1)
         {
@@ -85,6 +85,10 @@ import ItemEdit from './ItemEdit.vue'
               break
             }
           }
+          http.get(serverUrl + '/api/products/' + this.picId)
+          .then(result => {
+            this.picUrl = URL.createObjectURL(result.data)
+          })
         }
       })
       .catch(error => {

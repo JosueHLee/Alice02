@@ -11,33 +11,35 @@
       ref="ruleFormRef"
       :model="user"
       :rules="rules"
-      label-width="auto"
-      hide-required-asterisk=true
+      label-width="30%"
+      :hide-required-asterisk="true"
       size="large"
       style="text-align: center;"
     >
       <el-form-item class="InputRow" label="用户名" prop="username">
-        <el-input v-model="user.username" />
+        <el-input v-model="user.username"  placeholder='请输入用户名或电话'/>
       </el-form-item>
       <el-form-item class="InputRow" label="密码" prop="password">
-        <el-input v-model="user.password" />
+        <el-input v-model="user.password" show-password placeholder='请输入密码'/>
       </el-form-item>
-      <el-form-item>
+      <div class="display-center">
         <el-button type="primary" @click="onSubmit">提交</el-button>
         <el-button @click="diaglogVisable=false">取消</el-button>
-
-      </el-form-item>
+      </div>
       <el-link style="margin: 0%;" type="primary" @click="registerDiaVisable=true">没有账户？立即注册</el-link>
     </el-form>
-    
   </el-dialog>
-  <UserRegister :registerDiaVisable="this.registerDiaVisable" @register-Diaglog-Close="cancelRegister">
+  <UserRegister :registerDiaVisable="registerDiaVisable" @registerDialogClose="cancelRegister">
 
   </UserRegister>
 </template>
 
 <script>
+import { serverUrl } from '@/global/global'
 import UserRegister from './UserRegister.vue'
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
+import http from '../../global/http'
   export default {
     emits: ['loginDialogClose'],
     components: {
@@ -52,11 +54,12 @@ import UserRegister from './UserRegister.vue'
         // 用户输入表单
         user: {
           username: '',
+          tel:'',
           password: '',
         },
         rules: {
           username: [
-            { required: true, message: '用户名不能为空', trigger: 'blur'}
+            { required: true, message: '用户名或电话不能为空', trigger: 'blur'}
           ],
           password: [
             { required: true, message: '密码不能为空', trigger: 'blur'},
@@ -65,9 +68,55 @@ import UserRegister from './UserRegister.vue'
       }
     },
     methods: {
-      onSubmit() {
-        console.log('login submit')
-        this.diaglogVisable = false
+      async onSubmit() {
+        const post = {
+          username: /^1[34578][0-9]{9}$/.test(this.user.username)? '': this.user.username,
+          tel: /^1[34578][0-9]{9}$/.test(this.user.username)? this.user.username: '',
+          pwd: this.user.password
+        }
+        let token = null
+        let user = null
+        await axios.post(serverUrl + '/api/users/login', post, {headers: {"Content-Type": "application/json"}})
+        .then(result => {
+          if(result.data.code > 0)
+          {
+            ElMessage.success(result.data.msg)
+            token = result.data.data.token
+            localStorage.setItem('token',token)
+            http.get(serverUrl + '/api/users/prof/' + result.data.data.uid)
+            .then(result => {
+              if(result.data.code === 1)
+              {
+                user = {
+                  ...result.data.data,
+                  picture: serverUrl + '/api/users/icon/' + result.data.data.userId,
+                  picture_narrow: serverUrl + '/api/users/icon/' + result.data.data.userId
+                }
+                // console.log(user)
+                this.$store.commit('login',user,token)
+                this.diaglogVisable = false
+
+              }
+              else
+              {
+                ElMessage.error(result.data.msg)
+              }
+            })
+            .catch(error => {
+              ElMessage.error('网络繁忙，请稍后再试')
+              console.log(error)
+            })
+          }
+          else
+          {
+            ElMessage.error(result.data.msg)
+          }
+        })
+        .catch(error => {
+          ElMessage.error('网络繁忙，请稍后再试')
+          console.log(error)
+        })
+
       },
       cancelRegister() {
         this.registerDiaVisable = false
