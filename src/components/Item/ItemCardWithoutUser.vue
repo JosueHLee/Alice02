@@ -26,7 +26,13 @@
       </el-row>
     </template>
     <div class="display-center">
-      <el-image class="img" :src="picUrl" fit="cover" />
+      <el-image class="img" :src="picUrl" fit="cover">
+        <template #error>
+          <div class="image-slot">
+            <el-icon><icon-picture /></el-icon>
+          </div>
+        </template>
+      </el-image>
     </div>
     
     <template #footer>
@@ -43,13 +49,12 @@
         </el-row>
     </template>
   </el-card>
-  <ItemEdit :productid="product.id" :itemEditDialogVisable="itemEditDialogVisable" @itemEditDialogClose="itemEditDialogVisable = false">
+  <!-- <ItemEdit :productid="product.id" :itemEditDialogVisable="itemEditDialogVisable" @itemEditDialogClose="itemEditDialogVisable = false">
 
-  </ItemEdit>
+  </ItemEdit> -->
 </template>
 <script>
 import http from '../../global/http'
-import global, { serverUrl } from '../../global/global'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { state_text, state_color} from '../../global/global'
 import router from '@/router'
@@ -57,7 +62,7 @@ import ItemEdit from './ItemEdit.vue'
   export default {
     data() {
       return {
-        global,
+        
         picId: undefined,
         stateType: 'primary',
         state_text,
@@ -73,28 +78,28 @@ import ItemEdit from './ItemEdit.vue'
     emits:['connectFailed'],
     async created() {
       this.stateType = this.product.state === 1? 'danger':'primary'
-      await http.get(serverUrl + '/api/products/pics/' + this.product.id)
-      .then(result => {
-        if(result.data.code == 1)
+      try{
+        let result = await (await http.get('/api/products/pics/' + this.product.id)).data
+        if(result.code === 1)
         {
           for(var i in result.data.data)
-          {
-            if(i.kind == 1)
             {
-              this.picId = i.id
-              break
+              if(i.kind == 1)
+              {
+                this.picId = i.id
+                break
+              }
             }
-          }
-          http.get(serverUrl + '/api/products/' + this.picId)
-          .then(result => {
-            this.picUrl = URL.createObjectURL(result.data)
-          })
+            await http.get('/api/products/' + this.picId)
+            .then(result => {
+              this.picUrl = URL.createObjectURL(result.data)
+            })
         }
-      })
-      .catch(error => {
+      }
+      catch(error){
         //连接出错时抛出异常
         this.$emit('connectFailed',error)
-      })
+      }
     },
     methods: {
       onClick(){
@@ -151,9 +156,9 @@ import ItemEdit from './ItemEdit.vue'
           })
       }
     },
-    components: {
-      ItemEdit
-    }
+    // components: {
+    //   ItemEdit
+    // }
   }
 </script>
 <style scoped>

@@ -1,6 +1,6 @@
 <template>
   <el-empty v-if="items.length === 0" description="还未购买商品">
-    <el-button type="primary" @click="router.push({name: 'add'})">去发布</el-button>
+    <el-button type="primary" @click="router.push({name: 'add'})">去购买</el-button>
   </el-empty>
   <div v-else>
     <div class="demonstration">All combined</div>

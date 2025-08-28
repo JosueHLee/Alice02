@@ -75,7 +75,6 @@ import avatarEdit from '../Tools/avatarEdit.vue'
 import { mapState } from 'vuex'
 import { ElMessage } from 'element-plus'
 import http from '../../global/http'
-import { serverUrl } from '@/global/global'
 
 export default {
   data(){
@@ -155,7 +154,7 @@ export default {
     {
       const file = new FormData();
       file.append('pic', data)
-      http.post(serverUrl + '/api/localUsers/icon', file)
+      http.post('/api/localUsers/icon', file)
       .then(result => {
         if(result.data.code === 1)
         {

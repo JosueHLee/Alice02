@@ -26,7 +26,6 @@ import PaginationCom from '../Tools/paginationCom.vue';
 import { users } from '@/test';
 import { mapState } from 'vuex';
 import { ElMessage } from 'element-plus';
-import { serverUrl } from '@/global/global';
 import http from '../../global/http'
 import { throttle } from '@/global/global';
 import { ElNotification } from 'element-plus';
@@ -53,9 +52,6 @@ import { ElNotification } from 'element-plus';
       pageSize() {
         this.load()
       },
-      total() {
-        this.load()
-      }
     },
     methods: {
       currentPageChange(newValue) {
@@ -68,8 +64,8 @@ import { ElNotification } from 'element-plus';
         this.total = newValue
       },
       async load() {
-      this.currentPage++
-      await http.get(serverUrl + '/api/users/follow/' + this.user.userId,{params: {
+      this.currentPage
+      await http.get('/api/users/follow/' + this.user.userId,{params: {
       page: this.currentPage,
       size: this.pageSize,
       category: this.sort,
@@ -80,7 +76,7 @@ import { ElNotification } from 'element-plus';
           this.comeToEnd = true
           return
         }
-        this.items = result.data.data.records
+        this.users = result.data.data.records
         this.total = result.data.data.total
       })
       .catch(error => {

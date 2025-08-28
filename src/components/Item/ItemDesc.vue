@@ -29,7 +29,7 @@
             <el-row>
               <el-link type="info" @click="clickUser">
                 <el-text truncated class="text-width">
-                  {{ owner.username }}
+                  {{ owner?.username }}
                 </el-text>
               </el-link>
             </el-row>
@@ -48,11 +48,11 @@
             </el-row>
           </el-col>
           <!-- 用户不是自己的操作 -->
-          <el-col v-if="owner.userId !== user?.userId" :span="12" class="button display-center">
+          <el-col v-if="owner?.userId !== user?.userId" :span="12" class="button display-center">
             <el-button type="default" plain @click="clickChat">
               聊天
             </el-button>
-            <el-button v-if="true" type="success" plain @click="clickFollowed">
+            <el-button v-if="!isFollwed" type="success" plain @click="clickFollowed">
               关注
             </el-button>
             <!-- 已关注的要取关 -->
@@ -109,7 +109,7 @@ Spring 框架被划分为多个模块。应用程序可以选择他们需要的�
         </el-row>
         <!-- 商品操作行 -->
         <!-- 他人的商品 -->
-        <el-row v-if="owner.userId !== user?.userId" class="item-text-content display-center ">
+        <el-row v-if="owner?.userId !== user?.userId" class="item-text-content display-center ">
           <el-button type="warning" plain @click="clickBuy" size="large">
             购买
           </el-button>
@@ -135,7 +135,7 @@ Spring 框架被划分为多个模块。应用程序可以选择他们需要的�
         
     </el-col>
   </el-row>
-  <ItemEdit :productid="product.id" :itemEditDialogVisable="itemEditDialogVisable" @itemEditDialogClose="itemEditDialogVisable = false">
+  <ItemEdit v-if="product && itemEditDialogVisable" :product="product" :itemEditDialogVisable="itemEditDialogVisable" @itemEditDialogClose="itemEditDialogVisable = false">
 
   </ItemEdit>
   <el-dialog
@@ -148,7 +148,7 @@ Spring 框架被划分为多个模块。应用程序可以选择他们需要的�
     <el-input-number v-model="amount" :min="1" :max="product.amount" />
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button @click="amountDialogVisible = false">取消</el-button>
         <el-button type="primary" @click="clickAmount">
           确定
         </el-button>
@@ -157,43 +157,60 @@ Spring 框架被划分为多个模块。应用程序可以选择他们需要的�
   </el-dialog>
 </template>
 <script>
-import { allProducts as publishedProduct, users} from '@/test'
 import { state_text, state_color } from '@/global/global'
 import { mapState } from 'vuex'
 import ItemEdit from './ItemEdit.vue'
-import router from '@/router'
 import http from '../../global/http'
-import { serverUrl } from '@/global/global'
+import { ElMessage } from 'element-plus'
+import { useRoute } from 'vue-router'
+import router from '@/router'
+import { ElMessageBox } from 'element-plus'
   export default {
     data() {
       return {
-        product: {
-
-        },
+        isFollwed: false,
+        route: useRoute(),
+        product: undefined,
         owner: null,
-        pics: ["https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
-                "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"
-                ],
+        pics: null,
         state_text,
         state_color,
         itemEditDialogVisable: false,
         amountDialogVisible: false,
         amount: 1,
         avatorUrl: '',
+        itemUrlFinished: false
       }
     },
     props:['productId'],
     async created(){
       // 根据productId查询用户和商品信息
-      
-      await http.get(serverUrl + '/api/users/prof/' + this.product.sellerId)
+      await http.get('/api/products/detail/' + this.productId)
+      .then(result => {
+        if(result.data.code === 1)
+        {
+          this.product = result.data.data
+        }
+        else
+        {
+          ElMessage.error(result.data.msg)
+          return
+          
+        }
+      })
+      .catch(error => {
+        ElMessage.error("网络繁忙，请稍后再试")
+        console.log(error)
+        return
+      })
+      await http.get('/api/users/prof/' + this.product.sellerId)
       .then(result => {
         if(result.data.code === 1)
         {
           this.owner = {
             ...result.data.data,
-            picture: serverUrl + '/api/users/icon/' + result.data.data.userId,
-            picture_narrow: serverUrl + '/api/users/icon/' + result.data.data.userId
+            picture: '/api/users/icon/' + result.data.data.userId,
+            picture_narrow: '/api/users/icon/' + result.data.data.userId
           }
           http.get(this.owner.picture, { responseType: "blob"})
           .then(result => {
@@ -206,70 +223,74 @@ import { serverUrl } from '@/global/global'
               return null
           })
         }
-      })
-      .catch(error => {
-        this.$emit('connectFailed',error)
-      })
-      this.stateType = this.product.state === 1? 'danger':'primary'
-
-      await http.get(serverUrl + '/api/products/pics/' + this.product.id)
-      .then(result => {
-        if(result.data.code == 1)
-        {
-          for(let i = 0; i < result.data.data.length; i++)
-          {
-            // if(result.data.data[i].kind == 1)
-            // {
-            //   this.picId = result.data.data[i].id
-            //   break
-            // }
-            http.get(serverUrl + '/api/products/' + this.picId,{ responseType: 'blob' })
-          .then(result => {
-            if(result.data != null)
-            {
-              this.pics.push(URL.createObjectURL(result.data))
-            }
-          })
-          .catch(error => {
-            console.log(error)
-          })
-          }
-          
+        else {
+          ElMessage.error(result.data.msg)
+          return
         }
       })
       .catch(error => {
+        this.$emit('connectFailed',error)
+        return
+      })
+      this.stateType = this.product.state === 1? 'danger':'primary'
+
+      const result = await http.get('/api/products/pics/' + this.product.id)
+      try{
+        if(result.data.code == 1)
+        {
+          this.pics = []
+          for(let i = 0; i < result.data.data.length; i++)
+          {
+            await http.get('/api/products/' + result.data.data[i].id,{ responseType: 'blob' })
+            .then(result => {
+              if(result.data != null)
+              {
+                
+                this.pics.push(URL.createObjectURL(result.data))
+              }
+              else
+              {
+                this.pics = []
+              }
+            })
+            .catch(error => {
+              console.log(error)
+            })
+          }
+          this.itemUrlFinished = true
+        }
+      }
+      catch(error){
         //连接出错时抛出异常
         this.$emit('connectFailed',error)
-      })
-
-      // for(let i = 0; i < publishedProduct.length; i++)
-      // {
-      //   if(publishedProduct[i].id === this.productId)
-      //   {
-      //     this.product = publishedProduct[i]
-      //     break
-      //   }
-      // }
-      // for(let i = 0; i < users.length; i++)
-      // {
-      //   if(this.product.userId === users[i].userId)
-      //   {
-      //     this.owner = users[i]
-      //     return
-      //   }
-      // }
-      
+      }
     },
     methods: {
       clickUser() {
-        const href = router.resolve({name: 'UserHome', params: {uName: this.owner.username}}).href
+        const href = router.resolve({name: 'UserHome', params: {uName: this.owner?.username}}).href
         window.open(href, '_blank')
       },
       clickChat() {
         window.open("", "chat")
       },
       clickFollowed(){
-        console.log("clickFollwed!")
+        http.put('/api/users/follow/' + this.owner.userId)
+        .then(result => {
+          if(result.data.code  === 1)
+          {
+            ElMessage.success("关注成功")
+            this.isFollwed = true
+          }
+          else
+          {
+            ElMessage.error(result.data.msg)
+
+          }
+        })  
+        .catch(error => {
+          ElMessage.error("网络繁忙，请稍后再试")
+          console.log(error)
+        })
       },
       clickUnfollwed(){
         console.log("clickedUnFolled")
@@ -287,7 +308,27 @@ import { serverUrl } from '@/global/global'
         this.itemEditDialogVisable = true
       },
       clickOff(){
-        console.log("clickFollwed!")
+        ElMessageBox.alert('删除后将不再展示，确定删除商品吗', '提示', {
+        confirmButtonText: '确定',
+        callback: () => {
+          http.delete('/api/products/' + this.productId)
+        .then(result => {
+          if(result.data.code === 1)
+          {
+            ElMessage.success("删除成功")
+          }
+          else
+          {
+            ElMessage.error(result.data.msg)
+          }
+        })
+        .catch(error => {
+          ElMessage.error(error)
+          console.log(error)
+        })
+        },
+      })
+        
       },
       clickAmount() {
         this.itemEditDialogVisable = false

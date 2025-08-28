@@ -100,15 +100,19 @@ import { mapState } from 'vuex'
         picture: null,
       }
     },
-    created() {
+    async created() {
       if(this.$store.state.token != null)
+      {
         http.get(this.user.picture, { responseType: "blob"})
-      .then(result => {
-        if(result.data != null)
-          this.picture = URL.createObjectURL(result.data)
-        else
-          return null
-      })
+        .then(result => {
+          if(result.data != null)
+            this.picture = URL.createObjectURL(result.data)
+          else
+            return null
+        })
+        // await http.get('/api/products/list')
+      }
+        
       // 最多加载4个
       // this.publishedProducts = test_pp.slice(0,4)
       // this.soldProducts = test_sp.slice(0,4)

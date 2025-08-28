@@ -1,6 +1,6 @@
 <template>
-  <div class="HomeMain single-main-width">
-    <el-space wrap :size="30" class="display-center item-container" v-infinite-scroll="load">
+  <div class="HomeMain single-main-width" infinite-scroll-delay="30*1000" v-infinite-scroll="load" :infinite-scroll-disabled="comeToEnd">
+    <el-space wrap :size="30" class="display-center item-container" >
       <ItemCardWithUser v-for="item in items" :key="item" :product="item" :editable="false">
 
       </ItemCardWithUser>
@@ -13,9 +13,7 @@
 
 <script>
 import ItemCardWithUser from '../Item/ItemCardWithUser.vue';
-import { products2 } from '@/test';
 import http from '../../global/http'
-import { serverUrl } from '@/global/global';
 import { ElMessage } from 'element-plus';
 export default{
   data() {
@@ -33,7 +31,7 @@ export default{
   },
   props:['index'],
   async created() {
-    await http.get(serverUrl + '/api/products/lists',{params: {
+    await http.get('/api/products/lists',{params: {
       page: this.currentPage,
       size: this.pageSize,
       category: this.sort,
@@ -53,18 +51,18 @@ export default{
   methods: {
     async load() {
       this.currentPage++
-      await http.get(serverUrl + '/api/products/lists',{params: {
+      await http.get('/api/products/lists',{params: {
       page: this.currentPage,
       size: this.pageSize,
       category: this.sort,
       }})
       .then(result => {
-        if(result.data.data.records === null)
+        if(result.data.data.records.length === 0)
         {
           this.comeToEnd = true
           return
         }
-        this.items = result.data.data.records
+        this.items = this.items.concat(result.data.data.records)
         this.total = result.data.data.total
       })
       .catch(error => {
@@ -92,7 +90,8 @@ export default{
     padding-top: var(--wide-slot-width);
     padding-bottom: var(--wide-slot-width);
     box-shadow: var(--el-box-shadow-lighter);
-    border-radius: 4px
+    border-radius: 4px;
+    max-height: 80%
   }
 }
 @media screen and (min-width: 960px) {

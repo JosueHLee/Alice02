@@ -65,7 +65,7 @@
 <script>
 import { ElMessage } from "element-plus"
 import http from "../../global/http"
-import { first_type, serverUrl } from "@/global/global"
+import { first_type, throttle } from "@/global/global"
 export default {
   data(){
     return {
@@ -120,14 +120,14 @@ export default {
         this.item.price = this.item.price.toString().padEnd(this.item.price.toString().length + 2 - num, end)
       }
       this.item.type = [this.item.type]
-      http.post(serverUrl + '/api/products',JSON.stringify(this.item),{headers: {"Content-Type":"application/json"}})
+      http.post('/api/products',JSON.stringify(this.item),{headers: {"Content-Type":"application/json"}})
       .then(result => {
         if(result.data.code == 1)
         {
-          const id = result.data.data.id
+          const id = result.data.data
           let formData = new FormData()
-          formData.append('mainPic', this.pics[0].raw)
-          http.post(serverUrl + '/api/products/pic/1/' + id,formData,{headers: {"Content-Type":"multipart/form-data"}})
+          formData.append('pic', this.pics[0].raw)
+          http.post('/api/products/pic/1/' + id,formData,{headers: {"Content-Type":"multipart/form-data"}})
           .then(result => {
             if(result.data.code === 1)
             {
@@ -145,9 +145,8 @@ export default {
           formData = new FormData()
           for(let i = 1; i < this.pics.length; i++)
           {
-            formData.append('deputyPics',this.pics[i].raw)
-          }
-          http.post(serverUrl + '/api/products/pic/2/' + id,formData,{headers: {"Content-Type":"multipart/form-data"}})
+            formData.append('pic',this.pics[i].raw)
+            http.post('/api/products/pic/2/' + id,formData,{headers: {"Content-Type":"multipart/form-data"}})
           .then(result => {
             if(result.data.code === 1)
             {
@@ -160,9 +159,11 @@ export default {
             }
           })
           .catch(error => {
-            ElMessage.error("副图上传失败，请继续编辑商品")
+            throttle(ElMessage.error("副图上传失败，请继续编辑商品"), 100*1000)
+            
             console.log(error)
           })
+          }
         }
         else
         {

@@ -1,7 +1,6 @@
 <template>
-  <el-dialog class="frame" title="请修改商品" v-model="dialogVisable">
+  <el-dialog class="frame" title="请修改商品" v-model="dialogVisable" destroy-on-close>
     <el-empty v-if="item === null">
-
     </el-empty>
     <el-form v-else :model="item" label-width="20%" :rules="rules" class="form" size="large">
       <!-- 商品名可以进一步限制，必须包含汉字或字母 -->
@@ -19,7 +18,7 @@
         <el-input-number v-model="item.amount" :min="1" :max="10000" class="price-length"/>
       </el-form-item>
       <el-form-item label="标签:">
-        <el-select v-model="item.type" placeholder="请选择商品标签" style="width: 240px">
+        <el-select :v-model="item.type || null" placeholder="请选择商品标签" style="width: 240px">
           <el-option
             v-for="(type, index) in first_type"
             :key="index"
@@ -36,8 +35,6 @@
           class="upload-demo full-class"
           action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
           :auto-upload="false"
-          :on-preview="handlePreview"
-          :on-remove="handleRemove"
           list-type="picture"
           :limit="5"
           accept=".jpg,.jpeg,.png"
@@ -57,7 +54,7 @@
       <ElDivider />
       <div class="full-width display-center">
         <el-button type="primary" @click="clickAdd">保存</el-button>
-        <el-button @click="clickClear">清空</el-button>
+        <el-button @click="clickConcel">取消</el-button>
       </div>
       </el-row>
     </el-form>
@@ -68,7 +65,8 @@
 <script>
 import http from "../../global/http"
 import { first_type } from "@/global/global"
-import { allProducts } from "@/test"
+import { ElMessage } from "element-plus"
+import { throttle } from "@/global/global"
 export default {
   data(){
     return {
@@ -92,7 +90,7 @@ export default {
     }
   },
   props: {
-    productid: Number,
+    product: Object,
     itemEditDialogVisable: Boolean,
   },
   emits: ['itemEditDialogClose'],
@@ -106,56 +104,116 @@ export default {
       }
     }
   },
-  created() {
-    for(let i = 0; i < allProducts.length; i++)
-    {
-      if(allProducts[i].id === this.productid)
-      {
-        this.item = allProducts[i]
-        this.pics.push({
-          name: '',
-          url: this.item.pics[0]
-        })
-        return
+  async created() {
+    this.item = JSON.parse(JSON.stringify(this.product))
+    const result = await http.get('/api/products/pics/' + this.product.id)
+      try{
+        if(result.data.code == 1)
+        {
+          this.pics = []
+          for(let i = 0; i < result.data.data.length; i++)
+          {
+            await http.get('/api/products/' + result.data.data[i].id,{ responseType: 'blob' })
+            .then(result => {
+              if(result.data != null)
+              {
+                
+                this.pics.push({name: 'pic' + i,url:URL.createObjectURL(result.data)})
+              }
+              else
+              {
+                this.pics = []
+              }
+            })
+            .catch(error => {
+              console.log(error)
+            })
+          }
+          this.itemUrlFinished = true
+        }
       }
-    }
+      catch(error){
+        //连接出错时抛出异常
+        this.$emit('connectFailed',error)
+      }
   },
   methods: {
-    handlePreview(){
-      console.log("clickPreview")
-    },
-    handleRemove(){
-      console.log("clickRemove")
-    },
+
     clickAdd()
     {
       // 创建formdata向后端发送数据
-      const formData = new FormData()
-      formData.append('name',this.item.name)
-      formData.append('price',this.item.price)
-      formData.append('amount',this.item.amount)
-      formData.append('prof',this.item.prof)
-      formData.append('mainPic', this.pics[0].raw)
-      for(let i = 1; i < this.pics.length; i++)
+      if(this.item.price.toString().split('.').length === 1)
       {
-        formData.append('deputyPics',this.pics[i].raw)
+        this.item.price = this.item.price.toString().padEnd(this.item.price.toString().length + 3,'.00')
       }
-      // http.post('http://localhost:8085/api/products/add',formData)
-      // .then(result => {
-      //   console.log(result)
-      // })
-      // .catch(error => {
-      //   console.log(error)
-      // })
-      console.log('submit!')
+      else
+      {
+        let num = this.item.price.toString().split('.').pop().length
+        let end = ''
+        for(let i = num; i < 2; i++)
+        {
+          end += '0'
+        }
+        this.item.price = this.item.price.toString().padEnd(this.item.price.toString().length + 2 - num, end)
+      }
+      this.item.type = [this.item.type]
+      http.post('/api/products',JSON.stringify(this.item),{headers: {"Content-Type":"application/json"}})
+      .then(result => {
+        if(result.data.code == 1)
+        {
+          const id = result.data.data
+          let formData = new FormData()
+          formData.append('pic', this.pics[0].raw)
+          http.post('/api/products/pic/1/' + id,formData,{headers: {"Content-Type":"multipart/form-data"}})
+          .then(result => {
+            if(result.data.code === 1)
+            {
+              ElMessage.success(result.data.msg)
+            }
+            else
+            {
+              ElMessage.error(result.data.msg)
+            }
+          })
+          .catch(error => {
+            ElMessage.error("主图上传失败，请继续编辑商品")
+            console.log(error)
+          })
+          formData = new FormData()
+          for(let i = 1; i < this.pics.length; i++)
+          {
+            formData.append('pic',this.pics[i].raw)
+            http.post('/api/products/pic/2/' + id,formData,{headers: {"Content-Type":"multipart/form-data"}})
+          .then(result => {
+            if(result.data.code === 1)
+            {
+              ElMessage.success(result.data.msg)
+            }
+            else
+            {
+              ElMessage.error(result.data.msg)
+              
+            }
+          })
+          .catch(error => {
+            throttle(ElMessage.error("副图上传失败，请继续编辑商品"), 100*1000)
+            
+            console.log(error)
+          })
+          }
+        }
+        else
+        {
+          ElMessage.error(result.data.msg)
+        }
+      })
+      .catch(error => {
+        ElMessage.error(error)
+        console.log(error)
+      })
     },
-    clickClear()
-    {
-      // 清空表单
-      this.item.name = ''
-      this.item.price = 2.00
-      this.item.amount = 1
-      this.item.prof = ''
+    clickConcel() {
+      this.dialogVisable = false
     }
   }
 }

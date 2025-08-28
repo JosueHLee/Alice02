@@ -8,7 +8,7 @@
       </el-row>
     </template>
     <div class="display-center">
-      <el-image class="img" :src="user.picture_narrow" fit="cover" />
+      <el-image class="img" :src="user.picUrl" fit="cover" />
     </div>
     
     <template #footer>
@@ -27,19 +27,30 @@
 <script>
 import global from '../../global/global'
 import router from '@/router'
+import http from '../../global/http'
+import { ElMessage } from 'element-plus'
   export default {
     data() {
       return {
         global,
-        // picUrl: global.serverUrl + '/api/products/' + picId,
+        picUrl: '',
       }
     },
-    props: ['user']
-      //需要 商品名，商品图片(实际是商品id)，商品价格，商品状态,收藏数量
-    ,
+    props: ['user'],
     async created() {
-
+      console.log(this.user)
+      http.get('/api/users/icon/' + this.user.userId, { responseType: "blob"})
+      .then(result => {
+        if(result.data != null)
+          this.picUrl = URL.createObjectURL(result.data)
+        else
+          return null
+      })
+      .catch(error => {
+        this.$emit('connectFailed',error)
+      })
     },
+    emits:['connectFailed'],
     methods: {
       onClick(){
         const href = router.resolve({name: 'userDetail', params: {uName: this.user.username}}).href

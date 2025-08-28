@@ -26,7 +26,13 @@
       </el-row>
     </template>
     <div class="display-center">
-      <el-image class="img" :src="picUrl" fit="cover" />
+      <el-image class="img" :src="picUrl" fit="cover">
+        <template #error>
+          <div class="display-center" style="width: 100%; height: 100%;">
+            <el-icon><Picture /></el-icon>
+          </div>
+        </template>
+      </el-image>
     </div>
     
     <template #footer>
@@ -61,21 +67,20 @@
     </template>
     
   </el-card>
-  <ItemEdit :productid="product.id" :itemEditDialogVisable="itemEditDialogVisable" @itemEditDialogClose="itemEditDialogVisable = false">
+  <!-- <ItemEdit :productid="product.id" :itemEditDialogVisable="itemEditDialogVisable" @itemEditDialogClose="itemEditDialogVisable = false">
 
-  </ItemEdit>
+  </ItemEdit> -->
 </template>
 <script>
 import http from '../../global/http'
-import global, { serverUrl } from '../../global/global'
-import { ElDivider, ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { users } from '@/test'
 import router from '@/router'
 import ItemEdit from './ItemEdit.vue'
   export default {
     data() {
       return {
-        global,
+
         picId: undefined,
         owner: null,
         stateType: 'primary',
@@ -99,14 +104,14 @@ import ItemEdit from './ItemEdit.vue'
       //需要 商品名，商品图片(实际是商品id)，商品价格，商品状态,收藏数量
     ,
     async created() {
-      await http.get(serverUrl + '/api/users/prof/' + this.product.sellerId)
+      await http.get('/api/users/prof/' + this.product.sellerId)
       .then(result => {
         if(result.data.code === 1)
         {
           this.owner = {
             ...result.data.data,
-            picture: serverUrl + '/api/users/icon/' + result.data.data.userId,
-            picture_narrow: serverUrl + '/api/users/icon/' + result.data.data.userId
+            picture: '/api/users/icon/' + result.data.data.userId,
+            picture_narrow: '/api/users/icon/' + result.data.data.userId
           }
           http.get(this.owner.picture, { responseType: "blob"})
           .then(result => {
@@ -124,7 +129,7 @@ import ItemEdit from './ItemEdit.vue'
         this.$emit('connectFailed',error)
       })
       this.stateType = this.product.state === 1? 'danger':'primary'
-      await http.get(serverUrl + '/api/products/pics/' + this.product.id)
+      await http.get('/api/products/pics/' + this.product.id)
       .then(result => {
         if(result.data.code == 1)
         {
@@ -136,7 +141,7 @@ import ItemEdit from './ItemEdit.vue'
               break
             }
           }
-          http.get(serverUrl + '/api/products/' + this.picId,{ responseType: 'blob' })
+          http.get('/api/products/' + this.picId,{ responseType: 'blob' })
           .then(result => {
             if(result.data != null)
             {
@@ -216,9 +221,9 @@ import ItemEdit from './ItemEdit.vue'
           window.open(href, '_blank')
       }
     },
-    components: {
-      ItemEdit
-    }
+    // components: {
+    //   ItemEdit
+    // }
   }
 </script>
 <style scoped>

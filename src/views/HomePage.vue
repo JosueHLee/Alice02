@@ -42,4 +42,7 @@
 </script>
 
 <style>
+.main-page {
+  max-height: 80%;
+}
 </style>

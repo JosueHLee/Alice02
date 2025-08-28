@@ -38,7 +38,6 @@
 
 <script>
 import axios from 'axios'
-import { serverUrl } from '../../global/global.js'
 import { ElMessage } from 'element-plus'
   export default {
     props: {
@@ -109,7 +108,7 @@ import { ElMessage } from 'element-plus'
           pwd: this.user.password,
           tel: this.user.tel
         }
-        await axios.post(serverUrl + '/api/users/register',JSON.stringify(post_user),
+        await axios.post('/api/users/register',JSON.stringify(post_user),
           {headers: {'Content-Type': 'application/json'}})
         .then(result => {
           if(result.data.code === 1)

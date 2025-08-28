@@ -28,7 +28,6 @@
 import { mapState } from 'vuex'
 import { ElMessage } from 'element-plus'
 import http from '../../global/http'
-import { serverUrl } from '@/global/global'
 
 export default {
   data(){

@@ -27,7 +27,6 @@
 </template>
 
 <script>
-import { serverUrl } from '@/global/global'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import http from '../../global/http'
@@ -61,21 +60,21 @@ import router from '@/router'
         }
         let token = null
         let user = null
-        await axios.post(serverUrl + '/api/users/login', post, {headers: {"Content-Type": "application/json"}})
+        await axios.post('/api/users/login', post, {headers: {"Content-Type": "application/json"}})
         .then(result => {
           if(result.data.code > 0)
           {
             ElMessage.success(result.data.msg)
             token = result.data.data.token
             localStorage.setItem('token',token)
-            http.get(serverUrl + '/api/users/prof/' + result.data.data.uid)
+            http.get('/api/users/prof/' + result.data.data.uid)
             .then(result => {
               if(result.data.code === 1)
               {
                 user = {
                   ...result.data.data,
-                  picture: serverUrl + '/api/users/icon/' + result.data.data.userId,
-                  picture_narrow: serverUrl + '/api/users/icon/' + result.data.data.userId
+                  picture: '/api/users/icon/' + result.data.data.userId,
+                  picture_narrow: '/api/users/icon/' + result.data.data.userId
                 }
                 // console.log(user)
                 this.$store.commit('login',user,token)

@@ -9,7 +9,7 @@
       </HomeHeader>
     </div>
     <div class="main-page frame display-center">
-      <item-desc :productId="item">
+      <item-desc :productId="item.id">
 
       </item-desc>
     </div>
