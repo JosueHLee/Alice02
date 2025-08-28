@@ -22,9 +22,11 @@ import ItemFavourite from '@/components/Item/ItemFavourite.vue'
 import ItemAdd from '@/components/Item/ItemAdd.vue'
 import PayDemo from '@/components/Trade/PayDemo.vue'
 import UserSecurity from '@/components/User/UserSecurity.vue'
+import LoginPage from '@/views/LoginPage.vue'
+import UserLoginCom from '@/components/User/UserLoginCom.vue'
+import UserRegisCom from '@/components/User/UserRegisCom.vue'
 // import TradePay from '@/components/Trade/TradePay.vue' // Uncomment if you have this component
 import { user_menu_name } from '@/global/global'
-import { component } from 'v-viewer'
 const routes = [
   { 
     path: '/',
@@ -36,7 +38,22 @@ const routes = [
     name: 'Search',
     component: SearchResult
   },
-
+  {
+    path: '/enter',
+    component: LoginPage,
+    children: [
+      {
+        path: 'login',
+        name: 'Login',
+        component: UserLoginCom
+      },
+      {
+        path: 'regis',
+        name: 'Regis',
+        component: UserRegisCom
+      }
+    ]
+  },
   {
     path: '/userhome/:uName',
     component: UserHome,
@@ -149,5 +166,13 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
+router.beforeEach((to, from) => {
+  const token = localStorage.getItem('token')
 
+  const whiteList = ['Login', 'Regis', 'home', 'Search']
+
+  if (!token && !whiteList.includes(to.name)) {
+    return { name: 'Login' }
+  }
+})
 export default router

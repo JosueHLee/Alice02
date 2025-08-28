@@ -37,7 +37,7 @@
           :on-remove="handleRemove"
           list-type="picture"
           :limit="5"
-          accept=".jpg,.jpeg,.png"
+          accept=".png"
         >
           <el-button type="primary">Click to upload</el-button>
           <template #tip>
@@ -63,8 +63,9 @@
 </template>
 
 <script>
+import { ElMessage } from "element-plus"
 import http from "../../global/http"
-import { first_type } from "@/global/global"
+import { first_type, serverUrl } from "@/global/global"
 export default {
   data(){
     return {
@@ -103,24 +104,75 @@ export default {
     clickAdd()
     {
       // 创建formdata向后端发送数据
-      const formData = new FormData()
-      formData.append('name',this.item.name)
-      formData.append('price',this.item.price)
-      formData.append('amount',this.item.amount)
-      formData.append('prof',this.item.prof)
-      formData.append('mainPic', this.pics[0].raw)
-      for(let i = 1; i < this.pics.length; i++)
+      
+      if(this.item.price.toString().split('.').length === 1)
       {
-        formData.append('deputyPics',this.pics[i].raw)
+        this.item.price = this.item.price.toString().padEnd(this.item.price.toString().length + 3,'.00')
       }
-      // http.post('http://localhost:8085/api/products/add',formData)
-      // .then(result => {
-      //   console.log(result)
-      // })
-      // .catch(error => {
-      //   console.log(error)
-      // })
-      console.log('submit!')
+      else
+      {
+        let num = this.item.price.toString().split('.').pop().length
+        let end = ''
+        for(let i = num; i < 2; i++)
+        {
+          end += '0'
+        }
+        this.item.price = this.item.price.toString().padEnd(this.item.price.toString().length + 2 - num, end)
+      }
+      this.item.type = [this.item.type]
+      http.post(serverUrl + '/api/products',JSON.stringify(this.item),{headers: {"Content-Type":"application/json"}})
+      .then(result => {
+        if(result.data.code == 1)
+        {
+          const id = result.data.data.id
+          let formData = new FormData()
+          formData.append('mainPic', this.pics[0].raw)
+          http.post(serverUrl + '/api/products/pic/1/' + id,formData,{headers: {"Content-Type":"multipart/form-data"}})
+          .then(result => {
+            if(result.data.code === 1)
+            {
+              ElMessage.success(result.data.msg)
+            }
+            else
+            {
+              ElMessage.error(result.data.msg)
+            }
+          })
+          .catch(error => {
+            ElMessage.error("主图上传失败，请继续编辑商品")
+            console.log(error)
+          })
+          formData = new FormData()
+          for(let i = 1; i < this.pics.length; i++)
+          {
+            formData.append('deputyPics',this.pics[i].raw)
+          }
+          http.post(serverUrl + '/api/products/pic/2/' + id,formData,{headers: {"Content-Type":"multipart/form-data"}})
+          .then(result => {
+            if(result.data.code === 1)
+            {
+              ElMessage.success(result.data.msg)
+            }
+            else
+            {
+              ElMessage.error(result.data.msg)
+              
+            }
+          })
+          .catch(error => {
+            ElMessage.error("副图上传失败，请继续编辑商品")
+            console.log(error)
+          })
+        }
+        else
+        {
+          ElMessage.error(result.data.msg)
+        }
+      })
+      .catch(error => {
+        ElMessage.error(error)
+        console.log(error)
+      })
     },
     clickClear()
     {

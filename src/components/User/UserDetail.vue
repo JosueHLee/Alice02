@@ -49,8 +49,9 @@
           <el-button type="primary" @click="toPublish()">查看更多</el-button>
         </el-col>
       </el-row>
-      
-      <el-space wrap :size="24 * 1.16">
+      <el-empty v-if="publishedProducts.length === 0" description="还未发布商品">
+      </el-empty>
+      <el-space v-else wrap :size="24 * 1.16">
           <ItemCardWithoutUser v-for="product in publishedProducts" :key="product.index" :product="product" @connectFailed="handleError" :editable="true">
 
           </ItemCardWithoutUser>
@@ -66,8 +67,9 @@
           <el-button type="primary" @click="toSold()">查看更多</el-button>
         </el-col>
       </el-row>
-      
-      <el-space wrap :size="24 * 1.16">
+      <el-empty v-if="soldProducts.length === 0" description="还未卖出商品">
+      </el-empty>
+      <el-space v-else wrap :size="24 * 1.16">
         <ItemCardWithoutUser v-for="product in soldProducts" :key="product.index" :product="product" @connectFailed="handleError" :editable="false">
 
         </ItemCardWithoutUser>
@@ -100,7 +102,7 @@ import { mapState } from 'vuex'
     },
     created() {
       if(this.$store.state.token != null)
-      http.get(this.user.picture, { responseType: "blob"})
+        http.get(this.user.picture, { responseType: "blob"})
       .then(result => {
         if(result.data != null)
           this.picture = URL.createObjectURL(result.data)
@@ -108,8 +110,8 @@ import { mapState } from 'vuex'
           return null
       })
       // 最多加载4个
-      this.publishedProducts = test_pp.slice(0,4)
-      this.soldProducts = test_sp.slice(0,4)
+      // this.publishedProducts = test_pp.slice(0,4)
+      // this.soldProducts = test_sp.slice(0,4)
     },
     components: {
       ItemCardWithoutUser

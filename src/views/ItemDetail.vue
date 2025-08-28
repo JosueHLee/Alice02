@@ -9,16 +9,16 @@
       </HomeHeader>
     </div>
     <div class="main-page frame display-center">
-      <item-desc :productId="item.id">
+      <item-desc :productId="item">
 
       </item-desc>
     </div>
     <!-- 若是自己的商品不用推荐其他 -->
-    <div class="footer" v-if="user.userId !== item.userId">
+    <!-- <div class="footer" v-if="user.userId !== item.userId">
         <item-recommand>
 
         </item-recommand>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -30,7 +30,7 @@ import { ref } from 'vue';
 import { ElNotification } from 'element-plus';
 import { useRouter } from 'vue-router';
 import ItemDesc from '@/components/Item/ItemDesc.vue';
-import ItemRecommand from '@/components/Item/ItemRecommand.vue';
+// import ItemRecommand from '@/components/Item/ItemRecommand.vue';
 import { mapState } from 'vuex';
   export default {
     data() {
@@ -46,7 +46,7 @@ import { mapState } from 'vuex';
     },
     components: {
       ItemDesc,
-      ItemRecommand,
+      // ItemRecommand,
     },
     computed: {
       ...mapState(['user'])

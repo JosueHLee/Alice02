@@ -13,6 +13,7 @@ import '../src/global/global.css'
 import { users as test_user } from './test'
 import http from './global/http'
 import { serverUrl } from './global/global'
+import router from './router'
 window.__VUE_PROD_DEVTOOLS__ = false;
 window.__VUE_PROD_HYDRATION_MISMATCH_DETAILS__ = false;
 
@@ -45,12 +46,21 @@ const store = createStore({
       localStorage.removeItem('user')
       state.user = null
       state.token = null
+      router.push({name: 'Login'})
     },
     updateUser(state,user){
       // 应使用异步调用
-      state.user = user
+      state.user.email = user.email
+      state.user.gender = user.gender
+      state.user.prof = user.prof
       localStorage.setItem('user', JSON.stringify(user))
     }, 
+    updateUserSecurity(state, user){
+      state.user.username = user.username
+      state.user.tel = user.tel
+      localStorage.setItem('user', JSON.stringify(user))
+    }
+
   },
   actions: {
     async updateUserProfile(context,user) {
@@ -68,7 +78,23 @@ const store = createStore({
       {
         return new Error('网络繁忙，请稍后再试')
       })
-    }
+    },
+    async updateUserSecurity(context,user) {
+      await http.put(serverUrl + '/api/users',JSON.stringify(user), {headers: {"Content-Type":"application/json"}})
+      .then(result => {
+        if(result.data.code === 1)
+        {
+          context.commit('updateUserSecurity', user)
+          return result.data
+        }
+        else
+          return new Error(result.data.msg)
+      })
+      .catch(error =>
+      {
+        return new Error('网络繁忙，请稍后再试')
+      })
+    },
   }
 })
 const app = createApp(App)

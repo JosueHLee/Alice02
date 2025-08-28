@@ -21,7 +21,7 @@
           <!-- 用户头像 -->
           <el-col :span="4" class="display-center">
             <el-link type="info" @click="clickUser" underline="never">
-                <el-avatar :size="50" :src="owner.picture_narrow" />
+                <el-avatar :size="50" :src="avatorUrl" />
               </el-link>
           </el-col>
           <el-col :span="8">
@@ -162,10 +162,14 @@ import { state_text, state_color } from '@/global/global'
 import { mapState } from 'vuex'
 import ItemEdit from './ItemEdit.vue'
 import router from '@/router'
+import http from '../../global/http'
+import { serverUrl } from '@/global/global'
   export default {
     data() {
       return {
-        product: null,
+        product: {
+
+        },
         owner: null,
         pics: ["https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
                 "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"
@@ -175,28 +179,85 @@ import router from '@/router'
         itemEditDialogVisable: false,
         amountDialogVisible: false,
         amount: 1,
+        avatorUrl: '',
       }
     },
     props:['productId'],
-    created(){
+    async created(){
       // 根据productId查询用户和商品信息
+      
+      await http.get(serverUrl + '/api/users/prof/' + this.product.sellerId)
+      .then(result => {
+        if(result.data.code === 1)
+        {
+          this.owner = {
+            ...result.data.data,
+            picture: serverUrl + '/api/users/icon/' + result.data.data.userId,
+            picture_narrow: serverUrl + '/api/users/icon/' + result.data.data.userId
+          }
+          http.get(this.owner.picture, { responseType: "blob"})
+          .then(result => {
+            if(result.data != null)
+            {
+              this.avatorUrl = URL.createObjectURL(result.data)
+            }
+              
+            else
+              return null
+          })
+        }
+      })
+      .catch(error => {
+        this.$emit('connectFailed',error)
+      })
+      this.stateType = this.product.state === 1? 'danger':'primary'
 
-      for(let i = 0; i < publishedProduct.length; i++)
-      {
-        if(publishedProduct[i].id === this.productId)
+      await http.get(serverUrl + '/api/products/pics/' + this.product.id)
+      .then(result => {
+        if(result.data.code == 1)
         {
-          this.product = publishedProduct[i]
-          break
+          for(let i = 0; i < result.data.data.length; i++)
+          {
+            // if(result.data.data[i].kind == 1)
+            // {
+            //   this.picId = result.data.data[i].id
+            //   break
+            // }
+            http.get(serverUrl + '/api/products/' + this.picId,{ responseType: 'blob' })
+          .then(result => {
+            if(result.data != null)
+            {
+              this.pics.push(URL.createObjectURL(result.data))
+            }
+          })
+          .catch(error => {
+            console.log(error)
+          })
+          }
+          
         }
-      }
-      for(let i = 0; i < users.length; i++)
-      {
-        if(this.product.userId === users[i].userId)
-        {
-          this.owner = users[i]
-          return
-        }
-      }
+      })
+      .catch(error => {
+        //连接出错时抛出异常
+        this.$emit('connectFailed',error)
+      })
+
+      // for(let i = 0; i < publishedProduct.length; i++)
+      // {
+      //   if(publishedProduct[i].id === this.productId)
+      //   {
+      //     this.product = publishedProduct[i]
+      //     break
+      //   }
+      // }
+      // for(let i = 0; i < users.length; i++)
+      // {
+      //   if(this.product.userId === users[i].userId)
+      //   {
+      //     this.owner = users[i]
+      //     return
+      //   }
+      // }
       
     },
     methods: {

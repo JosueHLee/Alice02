@@ -1,5 +1,5 @@
 <template>
-  <el-card class="product" @click="onClick" v-if="picUrl">
+  <el-card class="product" @click="onClick" v-if="picUrl != null">
     <template #header>
       <el-row>
         <el-col :span="21">
@@ -52,7 +52,7 @@
           <!-- 用户名称 -->
           <el-link type="info" @click.stop="clickUser">
             <el-text truncated class="text-width">
-              {{ owner.username }}
+              {{ owner?.username }}
             </el-text>
           </el-link>
             
@@ -108,10 +108,13 @@ import ItemEdit from './ItemEdit.vue'
             picture: serverUrl + '/api/users/icon/' + result.data.data.userId,
             picture_narrow: serverUrl + '/api/users/icon/' + result.data.data.userId
           }
-          http.get(this.user.picture, { responseType: "blob"})
+          http.get(this.owner.picture, { responseType: "blob"})
           .then(result => {
             if(result.data != null)
+            {
               this.avatorUrl = URL.createObjectURL(result.data)
+            }
+              
             else
               return null
           })
@@ -125,17 +128,23 @@ import ItemEdit from './ItemEdit.vue'
       .then(result => {
         if(result.data.code == 1)
         {
-          for(var i in result.data.data)
+          for(let i = 0; i < result.data.data.length; i++)
           {
-            if(i.kind == 1)
+            if(result.data.data[i].kind == 1)
             {
-              this.picId = i.id
+              this.picId = result.data.data[i].id
               break
             }
           }
-          http.get(serverUrl + '/api/products/' + this.picId)
+          http.get(serverUrl + '/api/products/' + this.picId,{ responseType: 'blob' })
           .then(result => {
-            this.picUrl = URL.createObjectURL(result.data)
+            if(result.data != null)
+            {
+              this.picUrl = URL.createObjectURL(result.data)
+            }
+          })
+          .catch(error => {
+            console.log(error)
           })
         }
       })
@@ -203,7 +212,7 @@ import ItemEdit from './ItemEdit.vue'
         ElMessage.success("收藏成功")
       },
       clickUser() {
-         const href = router.resolve({name: 'userDetail', params: {uName: this.owner.username}}).href
+         const href = router.resolve({name: 'userDetail', params: {uName: this.owner?.username}}).href
           window.open(href, '_blank')
       }
     },

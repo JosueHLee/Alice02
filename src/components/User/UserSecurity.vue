@@ -1,14 +1,14 @@
 <template>
   <div class="frame">
-    <el-form :model="user" label-width="15%" class="form" size="large">
+    <el-form :model="localUser" ref="ruleFormRef" :rules="rules" label-width="15%" class="form" size="large">
       <el-form-item label="用户名:">
-        <el-input v-model="user.username" style="width: 50%;"/>
+        <el-input v-model="localUser.username" style="width: 50%;"/>
       </el-form-item>
       <el-form-item label="电话:">
-        <el-input v-model="user.tel" style="width: 50%;"/>
+        <el-input v-model="localUser.tel" style="width: 50%;"/>
       </el-form-item>
       <el-form-item label="密码:">
-        <el-input v-model="user.tel" style="width: 50%;"/>
+        <el-input v-model="localUser.pwd" style="width: 50%;"/>
       </el-form-item>
       
       <el-row>
@@ -35,26 +35,71 @@ export default {
     return {
       picture: null,
       //用户模型
-      dialogVisible: false
+      dialogVisible: false,
+      localUser: {
+        username: '',
+        tel: '',
+        pwd: '',
+      },
+      rules: {
+        username: [
+          { validator: (rule, value,callback) => {
+            if(value === '')
+            {
+              callback(new Error( '请输入用户名'))
+            }
+            else if(!/^(?!\d+$)[A-Za-z0-9\u4e00-\u9fa5]+$/.test(value))
+            {
+              callback(new Error('用户名由汉字、字母、数字组成,且非纯数字'))
+            }
+            else if(value.length < 4 || value.length > 30)
+            {
+              callback(new Error('用户名长度为4-30'))
+            }
+            else
+            {
+              callback()
+            }
+            }, trigger: 'blur'}
+        ],
+        tel: [
+          { required: true, message: '电话号码不能为空', trigger: 'blur'},
+          { pattern:/^1[34578][0-9]{9}$/, message: '请输入正确的电话号码', trigger: 'blur'}
+        ],
+        password: [
+          { required: true, message: '密码不能为空', trigger: 'blur'},
+          { max: 20, message: "不超过20字符", trigger: 'blur'}
+        ],
+      }
     }
+  },
+  created(){
+  // 获取用户商品信息
+
+  if(this.$store.state.token != null)
+  {
+    this.localUser.username = this.user.username
+    this.localUser.tel = this.user.tel
+  }
+    
   },
   methods: {
     onSave()
     {
-      this.$store.dispatch('updateUserProfile',this.user).then(() => {
+      this.$store.dispatch('updateUserSecurity',this.localUser).then(() => {
         ElMessage.success('保存成功！')
       }).catch(() => {
         ElMessage.error('保存失败')
       })
       console.log('submit!')
     },
-    onReset()
-    {
-      console.log('reset!')
-    },
     handleClose()
     {
       this.dialogVisible = false
+    },
+    onReset()
+    {
+     this.$refs.localUserForm.resetFields()
     },
     },
     computed: 

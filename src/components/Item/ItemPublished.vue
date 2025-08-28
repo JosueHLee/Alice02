@@ -37,8 +37,8 @@ import PaginationCom from '../Tools/paginationCom.vue';
     },
     // 初始化商品
     created() {
-      this.items = products1.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
-      this.total = products1.length
+      // this.items = products1.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+      // this.total = products1.length
     },
     watch: {
       currentPage() {

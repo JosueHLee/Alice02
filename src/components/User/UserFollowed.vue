@@ -24,6 +24,12 @@ import { useRouter } from 'vue-router';
 import UserCard from './UserCard.vue';
 import PaginationCom from '../Tools/paginationCom.vue';
 import { users } from '@/test';
+import { mapState } from 'vuex';
+import { ElMessage } from 'element-plus';
+import { serverUrl } from '@/global/global';
+import http from '../../global/http'
+import { throttle } from '@/global/global';
+import { ElNotification } from 'element-plus';
   export default {
     data() {
       return {
@@ -31,23 +37,24 @@ import { users } from '@/test';
         users: [],
         pageSize: 8,
         total: undefined,
-        currentPage: 1,
+        currentPage: 0,
       }
     },
     // 初始化商品
     created() {
-      this.users = users.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
-      this.total = users.length
+      this.load()
+      // this.users = users.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+      // this.total = users.length
     },
     watch: {
       currentPage() {
-        this.items = users.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+        this.load()
       },
       pageSize() {
-        this.items = users.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+        this.load()
       },
       total() {
-        this.items = users.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+        this.load()
       }
     },
     methods: {
@@ -59,7 +66,35 @@ import { users } from '@/test';
       },
       totalChange(newValue) {
         this.total = newValue
-      }
+      },
+      async load() {
+      this.currentPage++
+      await http.get(serverUrl + '/api/users/follow/' + this.user.userId,{params: {
+      page: this.currentPage,
+      size: this.pageSize,
+      category: this.sort,
+      }})
+      .then(result => {
+        if(result.data.data.records === null)
+        {
+          this.comeToEnd = true
+          return
+        }
+        this.items = result.data.data.records
+        this.total = result.data.data.total
+      })
+      .catch(error => {
+        throttle(() => {ElNotification({
+          title: '网络繁忙',
+          message: '网络繁忙，请稍后再试',
+          type: 'error',
+        })}, 100*1000)
+        console.log(error)
+      })
+    },
+    },
+    computed:{
+      ...mapState(['user'])
     },
     components: {
       UserCard,
