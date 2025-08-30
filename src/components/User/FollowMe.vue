@@ -19,25 +19,26 @@
 </template>
 
 <script>
-import router from '@/router';
-import { useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import UserCard from './UserCard.vue';
 import PaginationCom from '../Tools/paginationCom.vue';
-import { users } from '@/test';
+import { throttle } from '@/global/global';
+import http from '../../global/http'
+import { mapState } from 'vuex';
   export default {
     data() {
       return {
-        router: useRouter(),
+        route: useRoute(),
         users: [],
         pageSize: 8,
         total: undefined,
         currentPage: 1,
+        localUser: new Object,
       }
     },
     // 初始化商品
     created() {
-      this.users = users.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
-      this.total = users.length
+      this.load()
     },
     watch: {
       currentPage() {
@@ -46,9 +47,6 @@ import { users } from '@/test';
       pageSize() {
         this.items = users.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
       },
-      total() {
-        this.items = users.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
-      }
     },
     methods: {
       currentPageChange(newValue) {
@@ -59,11 +57,79 @@ import { users } from '@/test';
       },
       totalChange(newValue) {
         this.total = newValue
+      },
+      async load() {
+        try {
+          if(this.route.params.uid === this.user.userId)
+          {
+            this.localUser = { ...this.user }
+          }
+          else
+          {
+            const [userData] = await Promise.all([
+              http.get('/api/users/prof/' + this.route.params.uid),
+              ])
+            
+            if(userData.data.code === 1)
+            {
+              this.localUser = { 
+                ...userData.data.data,
+                picture: '/api/users/icon/' + userData.data.data.userId,
+                picture_narrow: '/api/users/icon/' + userData.data.data.userId
+              }
+              const avatarData = await http.get(this.localUser.picture, { responseType: "blob"})
+              if(avatarData.data !== null)
+              {
+                this.picture = URL.createObjectURL(avatarData.data)
+              }
+              else
+              {
+                  return null
+              }
+            }
+            else
+            {
+              ElMessage.error(userData.data.msg)
+            }
+          }
+          const result = await http.get('/api/users/fans/' + this.localUser.userId,{params: {
+            page: this.currentPage,
+            size: this.pageSize,
+            }})
+          if(result.data.data.records === null)
+          {
+            this.comeToEnd = true
+            return
+          }
+          this.total = result.data.data.total
+          for(let i = 0; i < result.data.data.records.length; i++)
+          {
+            const userData = await http.get('/api/users/prof/' + result.data.data.records[i].userId)
+            if(userData.data.code === 1)
+            {
+              this.users.push({
+                ...userData.data.data,
+                picture: '/api/users/icon/' + userData.data.data.userId,
+                picture_narrow: '/api/users/icon/' + userData.data.data.userId
+              })
+            }
+          }
+        } catch(error) {
+          throttle(() => {ElNotification({
+            title: '网络繁忙',
+            message: '网络繁忙，请稍后再试',
+            type: 'error',
+          })}, 100*1000)
+          console.log(error)
+        }
       }
     },
     components: {
       UserCard,
       PaginationCom
+    },
+    computed: {
+      ...mapState(['user'])
     }
   }
 </script>

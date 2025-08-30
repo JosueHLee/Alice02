@@ -1,6 +1,6 @@
 <template>
-  <el-empty v-if="user === null" description="用户不存在">
-    <el-button type="primary" @click="router.push({name: 'home'})">查看其他商品</el-button>
+  <el-empty v-if="localUser === null" description="用户不存在">
+    <el-button type="primary" @click="$router.push({name: 'home'})">查看其他商品</el-button>
   </el-empty>
   <el-space v-else direction="vertical" :fill="true" class="full-width main-container">
     <div>
@@ -23,19 +23,19 @@
             />
           
         </el-descriptions-item>
-        <el-descriptions-item label="用户名">{{user.username}}</el-descriptions-item> 
-        <el-descriptions-item label="性别"><el-tag size="small">{{ user.gender }}</el-tag></el-descriptions-item>
+        <el-descriptions-item label="用户名">{{localUser.username}}</el-descriptions-item> 
+        <el-descriptions-item label="性别"><el-tag size="small">{{ localUser.gender }}</el-tag></el-descriptions-item>
         <el-descriptions-item label="手机号">
-        <el-tag v-if="!user.tel" type="info">空</el-tag>
-        <span v-else>{{ user.tel }}</span>
+        <el-tag v-if="!localUser.tel" type="info">空</el-tag>
+        <span v-else>{{ localUser.tel }}</span>
         </el-descriptions-item>
         <el-descriptions-item label="邮箱">
-          <el-tag v-if="!user.email" type="info">空</el-tag>
-          <span v-else>{{ user.email }}</span>
+          <el-tag v-if="!localUser.email" type="info">空</el-tag>
+          <span v-else>{{ localUser.email }}</span>
         </el-descriptions-item>
         <el-descriptions-item label="个人简介">
-          <el-tag v-if="!user.prof" type="info">空</el-tag>
-          <span v-else>{{ user.prof }}</span>
+          <el-tag v-if="!localUser.prof" type="info">空</el-tag>
+          <span v-else>{{ localUser.prof }}</span>
         </el-descriptions-item>
       </el-descriptions>
     </div>
@@ -81,38 +81,77 @@
 
 <script>
 import { handleError } from 'vue'
-import {products1 as test_pp, products1 as test_sp, otherUser} from '../../test.js'
 import ItemCardWithoutUser from '../Item/ItemCardWithoutUser.vue'
-import {useRoute, useRouter } from 'vue-router'
-import { ElNotification } from 'element-plus'
+import {useRoute} from 'vue-router'
+import { ElMention, ElMessage, ElNotification } from 'element-plus'
 import { throttle } from '@/global/global.js'
-import { users } from '../../test.js'
 import http from '../../global/http.js'
 import { mapState } from 'vuex'
   export default {
     data() {
       return {
-        router: useRouter(),
         route: useRoute(),
         // user: null,
         publishedProducts:[],
         soldProducts: [],
         picture: null,
+        localUser: new Object,
       }
     },
     async created() {
-      if(this.$store.state.token != null)
-      {
-        http.get(this.user.picture, { responseType: "blob"})
-        .then(result => {
-          if(result.data != null)
-            this.picture = URL.createObjectURL(result.data)
+      try {
+        if(this.route.params.uid == this.user.userId)
+        {
+          this.localUser = { ...this.user }
+          console.log("here")
+        }
+        else
+        {
+          const [userData,itemData] = await Promise.all([
+            http.get('/api/users/prof/' + this.route.params.uid),
+            http.get('/api/products/published/' + this.route.params.uid,
+            {
+              params: {
+                page: 1,
+                size: 4
+              }
+            })
+            ])
+          if(itemData.data.code === 1)
+          {
+            this.items = itemData.data.data.records
+            this.total = itemData.data.data.total
+          }
           else
-            return null
-        })
-        // await http.get('/api/products/list')
+          {
+            ElMessage.error(itemData.data.msg)
+          }
+          if(userData.data.code === 1)
+          {
+            this.localUser = { 
+              ...userData.data.data,
+              picture: '/api/users/icon/' + userData.data.data.userId,
+              picture_narrow: '/api/users/icon/' + userData.data.data.userId
+            }
+            const avatarData = await http.get(this.localUser.picture, { responseType: "blob"})
+            if(avatarData.data !== null)
+            {
+              this.picture = URL.createObjectURL(avatarData.data)
+            }
+            else
+            {
+                return null
+            }
+          }
+          else
+          {
+            ElMessage.error(userData.data.msg)
+          }
+        }
+      } catch(error) {
+        ElMessage.error("网络繁忙，请稍后再试")
+        console.log(error)
       }
-        
       // 最多加载4个
       // this.publishedProducts = test_pp.slice(0,4)
       // this.soldProducts = test_sp.slice(0,4)

@@ -21,7 +21,6 @@
 </template>
 
 <script>
-import { first_type } from '@/global/global';
 export default {
   data() {
     return {

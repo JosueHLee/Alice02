@@ -8,7 +8,7 @@
     <!-- 商品轮播图 -->
     <el-col :span="12" class="display-center">
       <el-carousel indicator-position="outside" class="imgs">
-        <el-carousel-item v-for="pic in pics" :key="pic" class="img-frame">
+        <el-carousel-item v-for="pic in picUrl" :key="pic" class="img-frame">
           <el-image class="img" :src="pic" fit="cover" />
         </el-carousel-item>
       </el-carousel>
@@ -82,9 +82,9 @@
           <el-col :span="4" class="display-center">
             <el-tag size="large" type="warning" effect="dark"> <el-text size="large" style="color: #FAFAFA">{{ "￥" + "100" }}</el-text></el-tag>
           </el-col>
-          <el-col :span="3" :offset="1" class="display-center">
+          <!-- <el-col :span="3" :offset="1" class="display-center">
             <el-tag type="success">种类</el-tag>
-          </el-col>
+          </el-col> -->
           <el-col :span="3" class="display-center">
             <el-tag :type="state_color[product.state]">{{ state_text[product.state] }}</el-tag>
           </el-col>
@@ -113,11 +113,11 @@ Spring 框架被划分为多个模块。应用程序可以选择他们需要的�
           <el-button type="warning" plain @click="clickBuy" size="large">
             购买
           </el-button>
-          <el-button v-if="true" type="success" plain @click="clickWant" size="large">
+          <el-button v-if="!isWanted" type="success" plain @click="clickWant" size="large">
             收藏
           </el-button>
           <!-- 已收藏 -->
-          <el-button v-else type="success" plain @click="clickUnwant" size="large">
+          <el-button v-else type="primary" @click="clickUnwant" size="large">
             已收藏
           </el-button>
             
@@ -163,111 +163,88 @@ import ItemEdit from './ItemEdit.vue'
 import http from '../../global/http'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
-import router from '@/router'
 import { ElMessageBox } from 'element-plus'
+import { user_menu_name } from '@/global/global'
   export default {
     data() {
       return {
         isFollwed: false,
+        isWanted: false,
         route: useRoute(),
         product: undefined,
         owner: null,
-        pics: null,
+        picUrl: new Array,
         state_text,
         state_color,
         itemEditDialogVisable: false,
         amountDialogVisible: false,
         amount: 1,
         avatorUrl: '',
-        itemUrlFinished: false
+        itemUrlFinished: false,
+        picId: new Array,
       }
     },
     props:['productId'],
     async created(){
       // 根据productId查询用户和商品信息
-      await http.get('/api/products/detail/' + this.productId)
-      .then(result => {
+      try {
+        const result = await http.get('/api/products/detail/' + this.productId)
         if(result.data.code === 1)
         {
           this.product = result.data.data
-        }
-        else
-        {
-          ElMessage.error(result.data.msg)
-          return
-          
-        }
-      })
-      .catch(error => {
-        ElMessage.error("网络繁忙，请稍后再试")
-        console.log(error)
-        return
-      })
-      await http.get('/api/users/prof/' + this.product.sellerId)
-      .then(result => {
-        if(result.data.code === 1)
-        {
-          this.owner = {
-            ...result.data.data,
-            picture: '/api/users/icon/' + result.data.data.userId,
-            picture_narrow: '/api/users/icon/' + result.data.data.userId
-          }
-          http.get(this.owner.picture, { responseType: "blob"})
-          .then(result => {
+          const [userData, productImgData,followData,wantData] = await Promise.all([
+            http.get('/api/users/prof/' + this.product.sellerId),
+            http.get('/api/products/pics/' + this.product.id),
+            http.get('/api/users/follow/if/' + this.product.sellerId),
+            http.get('/api/products/fav/if/' + this.product.id)
+            ])
+          if(userData.data.code === 1)
+          {
+            this.owner = {
+              ...userData.data.data,
+              picture: '/api/users/icon/' + userData.data.data.userId,
+              picture_narrow: '/api/users/icon/' + userData.data.data.userId
+            }
+            const result = await http.get(this.owner.picture, { responseType: "blob"})
             if(result.data != null)
             {
               this.avatorUrl = URL.createObjectURL(result.data)
             }
-              
             else
               return null
-          })
-        }
-        else {
-          ElMessage.error(result.data.msg)
-          return
-        }
-      })
-      .catch(error => {
-        this.$emit('connectFailed',error)
-        return
-      })
-      this.stateType = this.product.state === 1? 'danger':'primary'
-
-      const result = await http.get('/api/products/pics/' + this.product.id)
-      try{
-        if(result.data.code == 1)
-        {
-          this.pics = []
-          for(let i = 0; i < result.data.data.length; i++)
-          {
-            await http.get('/api/products/' + result.data.data[i].id,{ responseType: 'blob' })
-            .then(result => {
-              if(result.data != null)
-              {
-                
-                this.pics.push(URL.createObjectURL(result.data))
-              }
-              else
-              {
-                this.pics = []
-              }
-            })
-            .catch(error => {
-              console.log(error)
-            })
           }
-          this.itemUrlFinished = true
+          if(productImgData.data.code === 1)
+          {
+            for(let i = 0; i < productImgData.data.data.length; i++)
+            {
+              const imgUrlData = await http.get('/api/products/' + productImgData.data.data[i].id,{ responseType: 'blob' })
+              if(imgUrlData.data != null)
+              {
+                this.picUrl.push(URL.createObjectURL(imgUrlData.data))
+              }
+            }
+          }
+          if(followData.data.code === 1)
+          {
+            this.isFollwed = true
+          }
+          if(wantData.data.code === 1)
+          {
+            this.isWanted = true
+          }
         }
-      }
-      catch(error){
-        //连接出错时抛出异常
+        else
+        {
+          ElMessage.error(result.data.msg)
+        }
+      } catch(error) {
         this.$emit('connectFailed',error)
       }
+      this.stateType = this.product.state === 1? 'danger':'primary'
     },
     methods: {
       clickUser() {
-        const href = router.resolve({name: 'UserHome', params: {uName: this.owner?.username}}).href
+        const href = this.$router.resolve({name: user_menu_name[0], params: {uid: this.owner?.userId}}).href
         window.open(href, '_blank')
       },
       clickChat() {
@@ -293,16 +270,60 @@ import { ElMessageBox } from 'element-plus'
         })
       },
       clickUnfollwed(){
-        console.log("clickedUnFolled")
+        http.delete('/api/users/follow/' + this.owner.userId)
+        .then(result => {
+          if(result.data.code  === 1)
+          {
+            ElMessage.success("取消关注")
+            this.isFollwed = false
+          }
+          else
+          {
+            ElMessage.error(result.data.msg)
+
+          }
+        })  
+        .catch(error => {
+          ElMessage.error("网络繁忙，请稍后再试")
+          console.log(error)
+        })
       },
       clickBuy(){
         this.amountDialogVisible = true
       },
       clickWant(){
-        console.log("clickFollwed!")
+        http.post('/api/products/fav/' + this.productId)
+        .then(result => {
+          if(result.data.code === 1)
+          {
+            ElMessage.success("收藏成功")
+            this.isWanted = true
+          }
+          else
+          {
+            ElMessage.error(result.data.msg)
+          }
+        }).catch(error => {
+          ElMessage.error("网络繁忙，请稍后再试")
+          console.log(error)
+        })
       },
       clickUnwant(){
-        console.log("clickFollwed!")
+        http.delete('/api/products/fav/' + this.productId)
+        .then(result => {
+          if(result.data.code === 1)
+          {
+            ElMessage.success("收藏取消")
+            this.isWanted = false
+          }
+          else
+          {
+            ElMessage.error(result.data.msg)
+          }
+        }).catch(error => {
+          ElMessage.error("网络繁忙，请稍后再试")
+          console.log(error)
+        })
       },
       clickEdit(){
         this.itemEditDialogVisable = true
@@ -316,6 +337,7 @@ import { ElMessageBox } from 'element-plus'
           if(result.data.code === 1)
           {
             ElMessage.success("删除成功")
+            router.push({name: 'home'})
           }
           else
           {
@@ -335,7 +357,7 @@ import { ElMessageBox } from 'element-plus'
         //创建订单，获取订单id
         
         //测试时假设订单号和商品号相同，方便展示
-        const href = router.resolve({name: 'Trade', params: {orderid: this.product.id}}).href
+        const href = this.$router.resolve({name: 'Trade', params: {orderid: this.product.id}}).href
         window.open(href, '_blank')
       }
   },
@@ -349,7 +371,7 @@ import { ElMessageBox } from 'element-plus'
 </script>
 <style scoped>
   @media screen and (min-width: 960px) {
-    ::v-deep span {
+    :deep(span) {
       font-size: 20 px !important;
     }
     .main-info {
@@ -362,7 +384,7 @@ import { ElMessageBox } from 'element-plus'
     }
   }
   @media screen and (min-width: 1200px) {
-    ::v-deep span {
+    :deep(span) {
       font-size: 20 px !important;
     }
     .main-info {

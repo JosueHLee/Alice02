@@ -189,7 +189,7 @@ export default {
 <style scoped>
 @media screen and (min-width: 960px) {
   
-  ::v-deep .avatar-uploader .el-upload  {
+  :deep(.avatar-uploader .el-upload) {
     border: 0;
   }
       .price-length {

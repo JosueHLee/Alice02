@@ -1,6 +1,10 @@
 <template>
   <el-empty v-if="items.length === 0" description="还未卖出商品">
-    <el-button type="primary" @click="router.push({name: 'add'})">去发布</el-button>
+    <el-button type="primary" @click="this.$router.push({name: 'add'})" 
+                v-if="route.params.uid === $store.state.user.userId"
+    >
+    去发布
+    </el-button>
   </el-empty>
   <div v-else>
     <div class="demonstration">All combined</div>
@@ -20,12 +24,11 @@
 </template>
 
 <script>
-import router from '@/router';
-import { useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
   export default {
     data() {
       return {
-        router: useRouter(),
+        route: useRoute(),
         items: [],
       }
     },

@@ -1,10 +1,17 @@
 <template>
-  <div class="HomeMain single-main-width" infinite-scroll-delay="30*1000" v-infinite-scroll="load" :infinite-scroll-disabled="comeToEnd">
-    <el-space wrap :size="30" class="display-center item-container" >
+  <div v-loading="!items" class="HomeMain single-main-width" infinite-scroll-delay="30*1000" v-infinite-scroll="load" :infinite-scroll-disabled="comeToEnd">
+    <el-space v-if="loadingSucess" wrap :size="30" class="display-center item-container" >
       <ItemCardWithUser v-for="item in items" :key="item" :product="item" :editable="false">
 
       </ItemCardWithUser>
     </el-space>
+    <el-result
+        v-else
+        icon="error"
+        title="获取商品失败"
+        sub-title="请检查你的网络连接"
+      >
+    </el-result>
   </div>
   <el-text v-if="comeToEnd" class="display-center" type="info" size="large">
     已经到底了
@@ -18,45 +25,39 @@ import { ElMessage } from 'element-plus';
 export default{
   data() {
     return {
-      items: [],
-      sort: 0,
+      items: new Array,
       comeToEnd: false,
       currentPage: 1,
       pageSize: 16,
-      total: 0
+      total: 0,
+      loadingSucess: true
     }
   },
   components: {
     ItemCardWithUser,
   },
   props:['index'],
-  async created() {
-    await http.get('/api/products/lists',{params: {
-      page: this.currentPage,
-      size: this.pageSize,
-      category: this.sort,
-    }})
-    .then(result => {
-      if(result.data.data.records === null)
-        return
-      this.items = result.data.data.records
-      this.total = result.data.data.total
-    })
-    .catch(error => {
-      ElMessage.error("网络繁忙，请稍后再试")
-      console.log(error)
-    })
-    // this.items = products2.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+  watch: {
+    index() {
+      this.getItem()
+    }
+  },
+  created() {
+    this.getItem()
   },
   methods: {
-    async load() {
+    load() {
       this.currentPage++
-      await http.get('/api/products/lists',{params: {
-      page: this.currentPage,
-      size: this.pageSize,
-      category: this.sort,
-      }})
-      .then(result => {
+      this.getItem()
+      
+    },
+    async getItem() {
+      try {
+        const result = await http.get('/api/products/lists',{params: {
+          page: this.currentPage,
+          size: this.pageSize,
+          category: this.index,
+          }})
         if(result.data.data.records.length === 0)
         {
           this.comeToEnd = true
@@ -64,15 +65,10 @@ export default{
         }
         this.items = this.items.concat(result.data.data.records)
         this.total = result.data.data.total
-      })
-      .catch(error => {
+      } catch(error) {
         ElMessage.error("网络繁忙，请稍后再试")
         console.log(error)
-      })
-      // this.items = this.items.concat(products2.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize))
-    },
-    getItem() {
-      
+      }
     }
   }
 }

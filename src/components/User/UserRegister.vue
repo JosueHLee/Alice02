@@ -152,7 +152,7 @@ import { ElMessage } from 'element-plus'
     width: 50%;
     margin-left: 20%;
   }
-  ::v-deep .el-form-item__content {
+  :deep(.el-form-item__content) {
     justify-content: center;
   }
 </style>

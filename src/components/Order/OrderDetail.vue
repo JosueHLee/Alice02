@@ -154,7 +154,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
     :focus-visible {
         outline: none !important;
       }
-    ::v-deep .el-tag .el-icon{
+    :deep(.el-tag .el-icon){
       cursor: default !important;
     }
   }

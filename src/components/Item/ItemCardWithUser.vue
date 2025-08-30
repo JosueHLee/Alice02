@@ -6,7 +6,7 @@
           <el-text>{{product.name}}</el-text>
         </el-col>
         <!-- 自己商品的操作 -->
-        <el-col :span="3" class="dropdown-container" v-if="editable">
+        <!-- <el-col :span="3" class="dropdown-container" v-if="editable">
           <el-dropdown trigger="hover" class="dropdown"  size="large">
               <el-icon size="large">
                 <More />
@@ -19,7 +19,7 @@
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-        </el-col>
+        </el-col> -->
         <!-- <el-col v-else :span="2" class="dropdown-container">
           <el-button type="primary" @click.stop="clickWant">收藏</el-button>
         </el-col> -->
@@ -104,59 +104,46 @@ import ItemEdit from './ItemEdit.vue'
       //需要 商品名，商品图片(实际是商品id)，商品价格，商品状态,收藏数量
     ,
     async created() {
-      await http.get('/api/users/prof/' + this.product.sellerId)
-      .then(result => {
-        if(result.data.code === 1)
+      try {
+        const [userData, productImgData] = await Promise.all([
+          http.get('/api/users/prof/' + this.product.sellerId),
+          http.get('/api/products/pics/' + this.product.id)
+          ])
+        if(userData.data.code === 1)
         {
           this.owner = {
-            ...result.data.data,
-            picture: '/api/users/icon/' + result.data.data.userId,
-            picture_narrow: '/api/users/icon/' + result.data.data.userId
+            ...userData.data.data,
+            picture: '/api/users/icon/' + userData.data.data.userId,
+            picture_narrow: '/api/users/icon/' + userData.data.data.userId
           }
-          http.get(this.owner.picture, { responseType: "blob"})
-          .then(result => {
-            if(result.data != null)
-            {
-              this.avatorUrl = URL.createObjectURL(result.data)
-            }
-              
-            else
-              return null
-          })
-        }
-      })
-      .catch(error => {
-        this.$emit('connectFailed',error)
-      })
-      this.stateType = this.product.state === 1? 'danger':'primary'
-      await http.get('/api/products/pics/' + this.product.id)
-      .then(result => {
-        if(result.data.code == 1)
-        {
-          for(let i = 0; i < result.data.data.length; i++)
+          const result = await http.get(this.owner.picture, { responseType: "blob"})
+          if(result.data != null)
           {
-            if(result.data.data[i].kind == 1)
+            this.avatorUrl = URL.createObjectURL(result.data)
+          }
+          else
+            return null
+        }
+        if(productImgData.data.code === 1)
+        {
+          for(let i = 0; i < productImgData.data.data.length; i++)
+          {
+            if(productImgData.data.data[i].kind == 1)
             {
-              this.picId = result.data.data[i].id
+              this.picId = productImgData.data.data[i].id
               break
             }
           }
-          http.get('/api/products/' + this.picId,{ responseType: 'blob' })
-          .then(result => {
-            if(result.data != null)
-            {
-              this.picUrl = URL.createObjectURL(result.data)
-            }
-          })
-          .catch(error => {
-            console.log(error)
-          })
+          const result = await http.get('/api/products/' + this.picId,{ responseType: 'blob' })
+          if(result.data != null)
+          {
+            this.picUrl = URL.createObjectURL(result.data)
+          }
         }
-      })
-      .catch(error => {
-        //连接出错时抛出异常
+      } catch(error) {
         this.$emit('connectFailed',error)
-      })
+      }
+      this.stateType = this.product.state === 1? 'danger':'primary'
     },
     methods: {
       onClick(){
@@ -217,7 +204,7 @@ import ItemEdit from './ItemEdit.vue'
         ElMessage.success("收藏成功")
       },
       clickUser() {
-         const href = router.resolve({name: 'userDetail', params: {uName: this.owner?.username}}).href
+         const href = router.resolve({name: 'userDetail', params: {uid: this.owner?.userId}}).href
           window.open(href, '_blank')
       }
     },
@@ -258,7 +245,7 @@ import ItemEdit from './ItemEdit.vue'
     :focus-visible {
         outline: none !important;
       }
-    ::v-deep .el-tag .el-icon{
+    :deep(.el-tag .el-icon){
       cursor: default !important;
     }
     .user-line {

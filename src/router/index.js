@@ -55,7 +55,7 @@ const routes = [
     ]
   },
   {
-    path: '/userhome/:uName',
+    path: '/userhome/:uid',
     component: UserHome,
     children: [
       {
@@ -168,8 +168,7 @@ const router = createRouter({
 })
 router.beforeEach((to, from) => {
   const token = localStorage.getItem('token')
-
-  const whiteList = ['Login', 'Regis', 'home', 'Search']
+  const whiteList = ['Login', 'Regis']
 
   if (!token && !whiteList.includes(to.name)) {
     return { name: 'Login' }

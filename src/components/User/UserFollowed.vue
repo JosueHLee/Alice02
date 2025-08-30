@@ -7,7 +7,7 @@
     </div>
     <div class="page-content display-center">
       <el-space class="page-container" :size="24" wrap>
-        <UserCard v-for="user in users" :key="user" :user="user">
+        <UserCard v-for="user in users" :key="user.userId" :user="user">
 
         </UserCard>
       </el-space>
@@ -19,11 +19,9 @@
 </template>
 
 <script>
-import router from '@/router';
-import { useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import UserCard from './UserCard.vue';
 import PaginationCom from '../Tools/paginationCom.vue';
-import { users } from '@/test';
 import { mapState } from 'vuex';
 import { ElMessage } from 'element-plus';
 import http from '../../global/http'
@@ -32,18 +30,18 @@ import { ElNotification } from 'element-plus';
   export default {
     data() {
       return {
-        router: useRouter(),
-        users: [],
+        route: useRoute(),
+        users: new Array,
         pageSize: 8,
         total: undefined,
-        currentPage: 0,
+        currentPage: 1,
+        userInfoLoaded: false,
+        localUser: new  Object,
       }
     },
     // 初始化商品
     created() {
       this.load()
-      // this.users = users.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
-      // this.total = users.length
     },
     watch: {
       currentPage() {
@@ -64,29 +62,69 @@ import { ElNotification } from 'element-plus';
         this.total = newValue
       },
       async load() {
-      this.currentPage
-      await http.get('/api/users/follow/' + this.user.userId,{params: {
-      page: this.currentPage,
-      size: this.pageSize,
-      category: this.sort,
-      }})
-      .then(result => {
-        if(result.data.data.records === null)
-        {
-          this.comeToEnd = true
-          return
+        try {
+          if(this.route.params.uid === this.user.userId)
+          {
+            this.localUser = { ...this.user }
+          }
+          else
+          {
+            const [userData] = await Promise.all([
+              http.get('/api/users/prof/' + this.route.params.uid),
+              ])
+            
+            if(userData.data.code === 1)
+            {
+              this.localUser = { 
+                ...userData.data.data,
+                picture: '/api/users/icon/' + userData.data.data.userId,
+                picture_narrow: '/api/users/icon/' + userData.data.data.userId
+              }
+              const avatarData = await http.get(this.localUser.picture, { responseType: "blob"})
+              if(avatarData.data !== null)
+              {
+                this.picture = URL.createObjectURL(avatarData.data)
+              }
+              else
+              {
+                  return null
+              }
+            }
+            else
+            {
+              ElMessage.error(userData.data.msg)
+            }
+          }
+          const result = await http.get('/api/users/follow/' + this.localUser.userId,{params: {
+            page: this.currentPage,
+            size: this.pageSize,
+            }})
+          if(result.data.data.records === null)
+          {
+            this.comeToEnd = true
+            return
+          }
+          this.total = result.data.data.total
+          for(let i = 0; i < result.data.data.records.length; i++)
+          {
+            const userData = await http.get('/api/users/prof/' + result.data.data.records[i].userId)
+            if(userData.data.code === 1)
+            {
+              this.users.push({
+                ...userData.data.data,
+                picture: '/api/users/icon/' + userData.data.data.userId,
+                picture_narrow: '/api/users/icon/' + userData.data.data.userId
+              })
+            }
+          }
+        } catch(error) {
+          throttle(() => {ElNotification({
+            title: '网络繁忙',
+            message: '网络繁忙，请稍后再试',
+            type: 'error',
+          })}, 100*1000)
+          console.log(error)
         }
-        this.users = result.data.data.records
-        this.total = result.data.data.total
-      })
-      .catch(error => {
-        throttle(() => {ElNotification({
-          title: '网络繁忙',
-          message: '网络繁忙，请稍后再试',
-          type: 'error',
-        })}, 100*1000)
-        console.log(error)
-      })
     },
     },
     computed:{

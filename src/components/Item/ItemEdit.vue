@@ -17,16 +17,6 @@
       <el-form-item label="库存:">
         <el-input-number v-model="item.amount" :min="1" :max="10000" class="price-length"/>
       </el-form-item>
-      <el-form-item label="标签:">
-        <el-select :v-model="item.type || null" placeholder="请选择商品标签" style="width: 240px">
-          <el-option
-            v-for="(type, index) in first_type"
-            :key="index"
-            :label="type"
-            :value="index"
-          />
-        </el-select>
-      </el-form-item>
       
       <el-form-item label="图片:">
         <!-- 上传商品图片 -->
@@ -72,6 +62,8 @@ export default {
     return {
       //用户模型
       pics: [],
+      mainPicId: undefined,
+      oldPics: [],
       first_type,
       item: null,
       rules: {
@@ -113,34 +105,44 @@ export default {
           this.pics = []
           for(let i = 0; i < result.data.data.length; i++)
           {
-            await http.get('/api/products/' + result.data.data[i].id,{ responseType: 'blob' })
-            .then(result => {
-              if(result.data != null)
-              {
-                
-                this.pics.push({name: 'pic' + i,url:URL.createObjectURL(result.data)})
-              }
-              else
-              {
-                this.pics = []
-              }
-            })
-            .catch(error => {
-              console.log(error)
-            })
+            if(result.data.data[i].kind == 1)
+            {
+              this.mainPicId = result.data.data[i].id
+              console.log(this.mainPicId)
+            }
+            const picData = await http.get('/api/products/' + result.data.data[i].id,
+                                          {responseType: 'blob' })
+            if(picData.data != null)
+            {
+              this.pics.push({name: result.data.data[i].id,
+                              url:URL.createObjectURL(picData.data),
+                              kind:result.data.data[i].kind})
+              this.oldPics.push({id: result.data.data[i].id,
+                              kind:result.data.data[i].kind})
+            }
+            else
+            {
+              this.pics = []
+            }
           }
           this.itemUrlFinished = true
         }
       }
       catch(error){
         //连接出错时抛出异常
-        this.$emit('connectFailed',error)
+        ElMessage.error("网络繁忙，请稍后再试")
+        console.log(error)
       }
   },
   methods: {
 
-    clickAdd()
+    async clickAdd()
     {
+      if(this.pics.length == 0)
+      {
+        ElMessage.error("请选择商品图")
+        return
+      }
       // 创建formdata向后端发送数据
       if(this.item.price.toString().split('.').length === 1)
       {
@@ -156,61 +158,64 @@ export default {
         }
         this.item.price = this.item.price.toString().padEnd(this.item.price.toString().length + 2 - num, end)
       }
-      this.item.type = [this.item.type]
-      http.post('/api/products',JSON.stringify(this.item),{headers: {"Content-Type":"application/json"}})
-      .then(result => {
-        if(result.data.code == 1)
+      try {
+        const formRes = await http.put('/api/products',
+                                JSON.stringify(this.item), 
+                                {headers: {"Content-Type":"application/json"}})
+        if(formRes.data.code == 1)
         {
-          const id = result.data.data
-          let formData = new FormData()
-          formData.append('pic', this.pics[0].raw)
-          http.post('/api/products/pic/1/' + id,formData,{headers: {"Content-Type":"multipart/form-data"}})
-          .then(result => {
-            if(result.data.code === 1)
-            {
-              ElMessage.success(result.data.msg)
-            }
-            else
-            {
-              ElMessage.error(result.data.msg)
-            }
-          })
-          .catch(error => {
-            ElMessage.error("主图上传失败，请继续编辑商品")
-            console.log(error)
-          })
-          formData = new FormData()
-          for(let i = 1; i < this.pics.length; i++)
-          {
-            formData.append('pic',this.pics[i].raw)
-            http.post('/api/products/pic/2/' + id,formData,{headers: {"Content-Type":"multipart/form-data"}})
-          .then(result => {
-            if(result.data.code === 1)
-            {
-              ElMessage.success(result.data.msg)
-            }
-            else
-            {
-              ElMessage.error(result.data.msg)
-              
-            }
-          })
-          .catch(error => {
-            throttle(ElMessage.error("副图上传失败，请继续编辑商品"), 100*1000)
-            
-            console.log(error)
-          })
+          const deleted = this.oldPics.filter(old =>
+          !this.pics.find(newPic => newPic.name == old.id) // 不在新列表里
+        )
+        
+          // 2. 找出新上传的图片（带 raw 的才是新图）
+          const added = this.pics.filter(p => p.raw)
+
+          // 3. 找出还保留的旧图（没删的旧图，不需要动）
+          const kept = this.pics.filter(p => !p.raw)
+          
+          console.log("删除的旧图：", deleted)
+          console.log("新增的图：", added)
+          console.log("保留的旧图：", kept)
+
+          // --- 接下来调接口 ---
+          // (1) 删除旧图
+          for (let d of deleted) {
+            if(d.id !== this.mainPicId)
+              await http.delete(`/api/products/pic/${d.id}`)
           }
+
+          // // (2) 替换主图（如果用户上传了新主图）
+          if (added.length > 0) {
+            const mainPic = added[0] // 约定第1张是主图
+            if(mainPic.raw)
+            {
+              const formData = new FormData()
+              formData.append("pic", mainPic.raw)
+              await http.put(`/api/products/pic/${this.mainPicId}`, formData)
+            }
+            else
+            {
+              await http.delete(`/api/products/pic/${mainPic.id}`)
+            }
+          }
+
+          // // (3) 上传副图（跳过第1张主图）
+          for (let i = 1; i < added.length; i++) {
+            const formData = new FormData()
+            formData.append("pic", added[i].raw)
+            http.post(`/api/products/pic/${this.item.id}`, formData)
+          }
+          ElMessage.success("保存成功")
         }
         else
         {
-          ElMessage.error(result.data.msg)
+          ElMessage.error(formRes.data.msg)
         }
-      })
-      .catch(error => {
+      } catch(error) {
         ElMessage.error(error)
         console.log(error)
-      })
+      } 
     },
     clickConcel() {
       this.dialogVisable = false
@@ -221,7 +226,7 @@ export default {
 <style scoped>
 @media screen and (min-width: 960px) {
   
-  ::v-deep .avatar-uploader .el-upload  {
+  :deep(.avatar-uploader .el-upload)  {
     border: 0;
   }
       .price-length {

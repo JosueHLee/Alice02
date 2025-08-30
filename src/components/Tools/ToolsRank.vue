@@ -1,10 +1,10 @@
 <template>
 
   <el-menu
-    v-model="internalIndex"
+    default-active="0"
     mode="horizontal"
     class="nav"
-    @select="emit('update:activeIndex', $event)"
+    @select="handleSelect"
   >
     <el-menu-item index="0">发布从新到旧</el-menu-item>
     <el-menu-item index="1">发布从旧到新</el-menu-item>
@@ -15,15 +15,20 @@
   </ElDivider>
 </template>
 
-<script setup>
-import { ElDivider } from 'element-plus'
-import { ref,defineProps,defineEmits, watch} from 'vue'
-const props = defineProps(['activeIndex'])
-const emit = defineEmits(['update:activeIndex'])
-const internalIndex = ref(props.activeIndex)
-watch(() => props.activeIndex, (newVal) => {
-  internalIndex.value = newVal
-})
+<script>
+export default {
+  data() {
+    return {
+
+    }
+  },
+  emits: ['update'],
+  methods: {
+    handleSelect(key) {
+      this.$emit('update',key)
+    }
+  }
+}
 </script>
 
 <style scoped>

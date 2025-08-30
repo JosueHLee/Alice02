@@ -1,12 +1,12 @@
 <template>
-  <el-card class="product" @click="onClick">
+  <el-card class="product" @click="onClick" v-if="picUrl != null">
     <template #header>
       <el-row>
         <el-col :span="21">
           <el-text>{{product.name}}</el-text>
         </el-col>
         <!-- 自己商品的操作 -->
-        <el-col :span="3" class="dropdown-container" v-if="editable">
+        <!-- <el-col :span="3" class="dropdown-container" v-if="editable">
           <el-dropdown trigger="hover" class="dropdown"  size="large">
               <el-icon size="large">
                 <More />
@@ -22,14 +22,14 @@
         </el-col>
         <el-col v-else :span="2" class="dropdown-container">
           <el-button type="primary">收藏</el-button>
-        </el-col>
+        </el-col> -->
       </el-row>
     </template>
-    <div class="display-center">
+    <div class="display-center" >
       <el-image class="img" :src="picUrl" fit="cover">
         <template #error>
-          <div class="image-slot">
-            <el-icon><icon-picture /></el-icon>
+          <div class="image-slot display-center" style="width: 100%;height: 100%;">
+            <el-icon><Picture /></el-icon>
           </div>
         </template>
       </el-image>
@@ -62,12 +62,10 @@ import ItemEdit from './ItemEdit.vue'
   export default {
     data() {
       return {
-        
         picId: undefined,
         stateType: 'primary',
         state_text,
         state_color,
-        // picUrl: "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
         picUrl: '',
         itemEditDialogVisable: false,
       }
@@ -79,21 +77,26 @@ import ItemEdit from './ItemEdit.vue'
     async created() {
       this.stateType = this.product.state === 1? 'danger':'primary'
       try{
-        let result = await (await http.get('/api/products/pics/' + this.product.id)).data
-        if(result.code === 1)
+        const result = await http.get('/api/products/pics/' + this.product.id)
+        if(result.data.code === 1)
         {
-          for(var i in result.data.data)
+          for(let i = 0; i < result.data.data.length; i++)
+          {
+            if(result.data.data[i].kind == 1)
             {
-              if(i.kind == 1)
-              {
-                this.picId = i.id
-                break
-              }
+              this.picId = result.data.data[i].id
+              break
             }
-            await http.get('/api/products/' + this.picId)
-            .then(result => {
-              this.picUrl = URL.createObjectURL(result.data)
-            })
+          }
+          const picData = await http.get('/api/products/' + this.picId,{ responseType: 'blob' })
+          if(picData.data != null)
+          {
+            this.picUrl = URL.createObjectURL(picData.data)
+          }
+        }
+        else
+        {
+          ElMessage.error(result.data.msg)
         }
       }
       catch(error){
@@ -193,7 +196,7 @@ import ItemEdit from './ItemEdit.vue'
     :focus-visible {
         outline: none !important;
       }
-    ::v-deep .el-tag .el-icon{
+    :deep(.el-tag .el-icon){
       cursor: default !important;
     }
   }

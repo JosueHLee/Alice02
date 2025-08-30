@@ -19,15 +19,15 @@
         </el-input>
       </div>
       <div class="Operation">
-        <el-button @click="loginDiaVisable=true" v-if="!$store.state.token">
+        <el-button @click="loginDiaVisable = true" v-if="!token">
           登录
           <el-icon><User /></el-icon>
         </el-button>
 
         
-        <el-dropdown v-if="$store.state.token" >
+        <el-dropdown v-if="token" >
           <el-link underline="never" @click="clickMenu(0)">
-          <el-avatar :size="40" :src="$store.state.user.picture"/>
+          <el-avatar :size="40" :src="picture"/>
           <!-- 鼠标悬浮方法图片 -->
         </el-link>
           <template #dropdown>
@@ -36,9 +36,14 @@
               @click="clickMenu(0)">
                 个人信息
               </el-dropdown-item>
+              
               <el-dropdown-item 
               @click="clickMenu(1)">
-                修改个人信息
+                修改个人简介
+              </el-dropdown-item>
+              <el-dropdown-item 
+              @click="clickMenu(9)">
+                账户安全
               </el-dropdown-item>
               <el-dropdown-item 
               @click="clickMenu(2)">
@@ -76,12 +81,12 @@
           </template>
         </el-dropdown>
 
-        <el-link underline="never" v-if="$store.state.token" @click="toChat">
+        <el-link underline="never" v-if="token" @click="toChat">
           消息
           <el-icon><ChatDotRound /></el-icon>
         </el-link>
 
-        <el-link underline="never" v-if="$store.state.token" @click="$router.push({name: 'Feedback'})">
+        <el-link underline="never" v-if="token" @click="$router.push({name: 'Feedback'})">
           反馈
           <el-icon><Service /></el-icon>
         </el-link >
@@ -99,19 +104,34 @@ import { ElDivider, ElMessage } from 'element-plus'
 import router from '@/router'
 import { useRoute } from 'vue-router'
 import { user_menu_name } from '@/global/global'
+import http from '../../global/http'
+import { mapState } from 'vuex'
   export default {
     components: {
       UserLogin
     },
     data() {
       return {
-        searchText: '',
+        picture: null,
+        
         loginDiaVisable: false,
         route: useRoute(),
+        token: localStorage.getItem('token'),
+        searchText: '',
       }
     },
-    created() {
-      this.searchText = this.route.params.key
+    async created(){
+      try {
+        this.searchText = this.route.params.key
+        const result = await http.get(this.user.picture, { responseType: "blob"})
+        if(result.data != null)
+          this.picture = URL.createObjectURL(result.data)
+        else
+          return null
+      } catch(error) {
+          console.log(error)
+          ElMessage.error("网络繁忙，请稍后再试")
+      }
     },
     methods: {
       clickSearch() {
@@ -120,25 +140,73 @@ import { user_menu_name } from '@/global/global'
         }
         else
         {
-          router.push({ name: 'Search', params: { key: this.searchText}})
+          const href = router.resolve({name: 'Search', params: {key: this.searchText}}).href
+          window.open(href, '_blank')
         }
       },
       clickMenu(index){
-        const href = router.resolve({name: user_menu_name[index], params: {uName: this.$store.state.user.username}}).href
+        const href = router.resolve({name: user_menu_name[index], params: {uid: this.$store.state.user.userId}}).href
         window.open(href, '_blank')
       },
       logout() {
         this.$store.commit('logout')
       },
       toChat() {
-        const href = router.resolve({name: 'ChatHome', params: {uName: this.$store.state.user.username}}).href
+        const href = router.resolve({name: 'ChatHome', params: {uid: this.$store.state.user.userId}}).href
         window.open(href, '_blank')
-      }
+      },
+      
     },
+    computed:
+    {
+      ...mapState(['user'])
+    }
   }
 </script>
 
 <style scoped>
+  @media screen and (min-width: 770px) {
+    .HomeHeader {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      box-shadow: var(--el-box-shadow-light) !important;
+      background-color: rgb(121.3, 187.1, 255);
+    }
+    .HomeHeader > a {
+      display: flex;
+      margin-left: 10%;
+      height: 100%;
+      width: auto;
+      align-items: center;
+      min-width: 0;
+      cursor: pointer
+    }
+    #HomePic {
+      min-width: 100px;
+      height: 100px;
+      width: 100px;
+    }
+    .Search {
+      margin-left: 6%;
+      width: 50%;
+    }
+    .Search-input .el-input__inner {
+      border-radius: 50px !important;
+    }
+    .Operation {
+      margin-left: 4%;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+    }
+    .el-link {
+      margin-left: 10%;
+      font-size: 1.15rem;
+    }
+  }
   @media screen and (min-width: 960px) {
     .HomeHeader {
       height: 100%;
@@ -181,5 +249,5 @@ import { user_menu_name } from '@/global/global'
       font-size: 1.15rem;
     }
   }
-  
+
 </style>

@@ -3,12 +3,12 @@
     <template #header>
       <el-row>
         <el-col :span="21">
-          <el-text>{{user.name}}</el-text>
+          <el-text>{{user.username}}</el-text>
         </el-col>
       </el-row>
     </template>
     <div class="display-center">
-      <el-image class="img" :src="user.picUrl" fit="cover" />
+      <el-image class="img" :src="picUrl" fit="cover" />
     </div>
     
     <template #footer>
@@ -16,8 +16,8 @@
         <el-col :span="8">
           <el-tag><el-text>{{ "粉丝数：" + user.fans }}</el-text></el-tag>
         </el-col>
-        <el-col :span="8">
-          <el-tag><el-text>{{ "关注数：" + user.follows }}</el-text></el-tag>
+        <el-col :span="8" :offset="6">
+          <el-tag><el-text>{{ "关注数：" + user.follow }}</el-text></el-tag>
         </el-col>
       </el-row>
     </template>
@@ -38,22 +38,20 @@ import { ElMessage } from 'element-plus'
     },
     props: ['user'],
     async created() {
-      console.log(this.user)
-      http.get('/api/users/icon/' + this.user.userId, { responseType: "blob"})
-      .then(result => {
+      try{
+        const result = await http.get('/api/users/icon/' + this.user.userId, { responseType: "blob"})
         if(result.data != null)
           this.picUrl = URL.createObjectURL(result.data)
         else
           return null
-      })
-      .catch(error => {
+      } catch(error) {
         this.$emit('connectFailed',error)
-      })
+      }
     },
     emits:['connectFailed'],
     methods: {
       onClick(){
-        const href = router.resolve({name: 'userDetail', params: {uName: this.user.username}}).href
+        const href = router.resolve({name: 'userDetail', params: {uid: this.user.userId}}).href
         window.open(href, '_blank')
       },
     }
@@ -91,7 +89,7 @@ import { ElMessage } from 'element-plus'
     :focus-visible {
         outline: none !important;
       }
-    ::v-deep .el-tag .el-icon{
+    :deep(.el-tag .el-icon){
       cursor: default !important;
     }
   }

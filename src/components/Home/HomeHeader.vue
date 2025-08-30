@@ -19,13 +19,13 @@
         </el-input>
       </div>
       <div class="Operation">
-        <el-button @click="loginDiaVisable = true" v-if="!$store.state.token">
+        <el-button @click="loginDiaVisable = true" v-if="!token">
           登录
           <el-icon><User /></el-icon>
         </el-button>
 
         
-        <el-dropdown v-if="$store.state.token" >
+        <el-dropdown v-if="token" >
           <el-link underline="never" @click="clickMenu(0)">
           <el-avatar :size="40" :src="picture"/>
           <!-- 鼠标悬浮方法图片 -->
@@ -81,12 +81,12 @@
           </template>
         </el-dropdown>
 
-        <el-link underline="never" v-if="$store.state.token" @click="toChat">
+        <el-link underline="never" v-if="token" @click="toChat">
           消息
           <el-icon><ChatDotRound /></el-icon>
         </el-link>
 
-        <el-link underline="never" v-if="$store.state.token" @click="$router.push({name: 'Feedback'})">
+        <el-link underline="never" v-if="token" @click="$router.push({name: 'Feedback'})">
           反馈
           <el-icon><Service /></el-icon>
         </el-link >
@@ -116,17 +116,20 @@ import { mapState } from 'vuex'
         searchText: '',
         loginDiaVisable: false,
         route: useRoute(),
+        token: localStorage.getItem('token')
       }
     },
-    async mounted(){
-      if(this.$store.state.token != null)
-      await http.get(this.user.picture, { responseType: "blob"})
-      .then(result => {
+    async created(){
+      try {
+        const result = await http.get(this.user.picture, { responseType: "blob"})
         if(result.data != null)
           this.picture = URL.createObjectURL(result.data)
         else
           return null
-      })
+      } catch(error) {
+          console.log(error)
+          ElMessage.error("网络繁忙，请稍后再试")
+      }
     },
     methods: {
       clickSearch() {
@@ -140,14 +143,14 @@ import { mapState } from 'vuex'
         }
       },
       clickMenu(index){
-        const href = router.resolve({name: user_menu_name[index], params: {uName: this.$store.state.user.username}}).href
+        const href = router.resolve({name: user_menu_name[index], params: {uid: this.$store.state.user.userId}}).href
         window.open(href, '_blank')
       },
       logout() {
         this.$store.commit('logout')
       },
       toChat() {
-        const href = router.resolve({name: 'ChatHome', params: {uName: this.$store.state.user.username}}).href
+        const href = router.resolve({name: 'ChatHome', params: {uid: this.$store.state.user.userId}}).href
         window.open(href, '_blank')
       },
       

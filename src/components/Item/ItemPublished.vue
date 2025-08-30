@@ -1,13 +1,17 @@
 <template>
-  <el-empty v-if="items.length === 0" description="还未发布商品">
-    <el-button type="primary" @click="router.push({name: 'add'})">去发布</el-button>
+  <el-empty v-if="items?.length === 0" description="还未发布商品">
+    <el-button type="primary" @click="this.$router.push({name: 'add'})" 
+                v-if="route.params.uid === $store.state.user.userId"
+    >
+    去发布
+    </el-button>
   </el-empty>
   <div v-else class="main-container">
     <div class="title">
       <h2 class="first-title-color">发布的商品 ·{{ total }}</h2>
     </div>
-    <div class="page-content display-center">
-      <el-space class="page-container" :size="24" wrap>
+    <div v-loading="!items" class="page-content display-center">
+      <el-space  class="page-container" :size="24" wrap>
         <ItemCardWithoutUser v-for="item in items" :key="item" :product="item" :editable="true">
 
         </ItemCardWithoutUser>
@@ -20,35 +24,34 @@
 </template>
 
 <script>
-import router from '@/router';
-import { useRouter } from 'vue-router';
-import { products1 } from '@/test';
+import { useRoute } from 'vue-router';
 import ItemCardWithoutUser from './ItemCardWithoutUser.vue';
 import PaginationCom from '../Tools/paginationCom.vue';
+import http from '../../global/http'
+import { ElMessage } from 'element-plus';
   export default {
     data() {
       return {
-        router: useRouter(),
-        items: [],
+        route: useRoute(),
+        items: new Array,
         pageSize: 8,
         total: undefined,
         currentPage: 1,
       }
     },
     // 初始化商品
-    created() {
-      // this.items = products1.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
-      // this.total = products1.length
+    async created() {
+      this.load()
     },
     watch: {
       currentPage() {
-        this.items = products1.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+        this.load()
       },
       pageSize() {
-        this.items = products1.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+        this.load()
       },
       total() {
-        this.items = products1.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+        this.load()
       }
     },
     methods: {
@@ -60,6 +63,29 @@ import PaginationCom from '../Tools/paginationCom.vue';
       },
       totalChange(newValue) {
         this.total = newValue
+      },
+      async load() {
+        try {
+          const itemData = await http.get('/api/products/published/' + this.route.params.uid,
+            {
+              params: {
+                page: this.currentPage,
+                size: this.pageSize
+              }
+            })
+          if(itemData.data.code === 1)
+          {
+            this.items = itemData.data.data.records
+            this.total = itemData.data.data.total
+          }
+          else
+          {
+            ElMessage.error(itemData.data.msg)
+          }
+        } catch(error) {
+          ElMessage.error(error)
+          console.log(error)
+        }
       }
     },
     components: {

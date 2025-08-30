@@ -1,6 +1,6 @@
 <template>
   <el-empty v-if="items.length === 0" description="还未收藏商品">
-    <el-button type="primary" @click="router.push({name: 'add'})">去发布</el-button>
+    <el-button type="primary" @click="router.push({name: 'home'})">去浏览</el-button>
   </el-empty>
   <div v-else class="main-container">
     <div class="title">
@@ -21,15 +21,17 @@
 
 <script>
 import router from '@/router';
-import { useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { products1 } from '@/test';
 import ItemCardWithoutUser from './ItemCardWithoutUser.vue';
 import paginationCom from '../Tools/paginationCom.vue';
+import { ElMessage } from 'element-plus';
+import http from '../../global/http'
   export default {
     data() {
       return {
-        router: useRouter(),
-        items: [],
+        route: useRoute(),
+        items: new Array,
         pageSize: 8,
         total: undefined,
         currentPage: 1,
@@ -37,6 +39,7 @@ import paginationCom from '../Tools/paginationCom.vue';
     },
     // 初始化商品
     created() {
+      this.load()
       // this.items = products1.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
       // this.total = products1.length
     },
@@ -46,13 +49,13 @@ import paginationCom from '../Tools/paginationCom.vue';
     },
     watch: {
       currentPage() {
-        this.items = products1.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+        this.load()
       },
       pageSize() {
-        this.items = products1.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+        this.load()
       },
       total() {
-        this.items = products1.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+        this.load()
       }
     },
     methods: {
@@ -64,6 +67,29 @@ import paginationCom from '../Tools/paginationCom.vue';
       },
       totalChange(newValue) {
         this.total = newValue
+      },
+      async load() {
+        try {
+          const itemData = await http.get('/api/products/fav/' + this.route.params.uid,
+            {
+              params: {
+                page: this.currentPage,
+                size: this.pageSize
+              }
+            })
+          if(itemData.data.code === 1)
+          {
+            this.items = itemData.data.data.records
+            this.total = itemData.data.data.total
+          }
+          else
+          {
+            ElMessage.error(itemData.data.msg)
+          }
+        } catch(error) {
+          ElMessage.error(error)
+          console.log(error)
+        }
       }
     },
   }

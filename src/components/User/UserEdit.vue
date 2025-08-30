@@ -108,9 +108,6 @@ export default {
   },
   created(){
     // 获取用户商品信息
-
-    if(this.$store.state.token != null)
-    {
       this.getAvator()
       this.localUser.userId = this.user.userId
       this.localUser.username = this.user.username
@@ -122,7 +119,6 @@ export default {
       this.localUser.prof = this.user.prof
       this.localUser.fans = this.user.fans
       this.localUser.follows = this.user.follows
-    }
     
   },
   methods: {
@@ -180,6 +176,9 @@ export default {
           else
             return null
         })
+        .catch(error => {
+          ElMessage("网络异常，请稍后再试")
+        })
       }
   },
   components: {
@@ -193,19 +192,19 @@ export default {
 </script>
 <style scoped>
   @media screen and (min-width: 960px) {
-    ::v-deep .avatar-uploader .el-upload  {
+    :deep(.avatar-uploader .el-upload)  {
       border: 0;
     }
-    ::v-deep .el-form-item__label-wrap {
+    :deep(.el-form-item__label-wrap) {
       display: flex;
       align-items: center;
     }
-    ::v-deep .el-dialog__body {
+    :deep(.el-dialog__body) {
       display: flex;
       justify-content: center;
       align-items: center;
     }
-    ::v-deep .el-dialog{
+    :deep(.el-dialog){
       background-color: rgba(0,0,0,0);
       border: 0px;
       box-shadow: none;

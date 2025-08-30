@@ -60,21 +60,19 @@ import router from '@/router'
         }
         let token = null
         let user = null
-        await axios.post('/api/users/login', post, {headers: {"Content-Type": "application/json"}})
-        .then(result => {
+        try {
+          const result = await axios.post('/api/users/login', post, {headers: {"Content-Type": "application/json"}})
           if(result.data.code > 0)
           {
-            ElMessage.success(result.data.msg)
             token = result.data.data.token
             localStorage.setItem('token',token)
-            http.get('/api/users/prof/' + result.data.data.uid)
-            .then(result => {
-              if(result.data.code === 1)
+            const userData = await http.get('/api/users/prof/' + result.data.data.uid)
+            if(userData.data.code === 1)
               {
                 user = {
-                  ...result.data.data,
-                  picture: '/api/users/icon/' + result.data.data.userId,
-                  picture_narrow: '/api/users/icon/' + result.data.data.userId
+                  ...userData.data.data,
+                  picture: '/api/users/icon/' + userData.data.data.userId,
+                  picture_narrow: '/api/users/icon/' + userData.data.data.userId
                 }
                 // console.log(user)
                 this.$store.commit('login',user,token)
@@ -82,23 +80,17 @@ import router from '@/router'
               }
               else
               {
-                ElMessage.error(result.data.msg)
+                ElMessage.error(userData.data.msg)
               }
-            })
-            .catch(error => {
-              ElMessage.error('网络繁忙，请稍后再试')
-              console.log(error)
-            })
           }
           else
           {
             ElMessage.error(result.data.msg)
           }
-        })
-        .catch(error => {
+        } catch(error) {
           ElMessage.error('网络繁忙，请稍后再试')
           console.log(error)
-        })
+        }
       },
       clickRegis() {
         router.push({name: 'Regis'})
@@ -119,7 +111,7 @@ import router from '@/router'
     width: 50%;
     margin-left: 20%;
   }
-  ::v-deep .el-form-item__content {
+  :deep(.el-form-item__content) {
     justify-content: center;
   }
 </style>
