@@ -11,9 +11,9 @@
         </ChatList>
       </div>
       <div class="main-page">
-        <RouterView>
+        <ChatWindow>
 
-        </RouterView>
+        </ChatWindow>
       </div>
   </div>
 
@@ -23,6 +23,7 @@
 import { useRoute } from 'vue-router';
 import HomeHeader from '@/components/Home/HomeHeader.vue';
 import ChatList from '@/components/Chat/ChatList.vue';
+import ChatWindow from '@/components/Chat/ChatWindow.vue';
 export default {
   data(){
     return {
@@ -32,7 +33,8 @@ export default {
   components: 
   {
     HomeHeader,
-    ChatList
+    ChatList,
+    ChatWindow
   }
 }
 </script>

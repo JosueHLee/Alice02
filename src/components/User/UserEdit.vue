@@ -73,7 +73,6 @@
 <script>
 import avatarEdit from '../Tools/avatarEdit.vue'
 import { mapState } from 'vuex'
-import { ElMessage } from 'element-plus'
 import http from '../../global/http'
 
 export default {
@@ -125,9 +124,9 @@ export default {
     onSave()
     {
       this.$store.dispatch('updateUserProfile',this.localUser).then(() => {
-        ElMessage.success('保存成功！')
+        this.$message.success('保存成功！')
       }).catch((error) => {
-        ElMessage.error(error.message)
+        this.$message.error(error.message)
       })
     },
     onReset()
@@ -154,17 +153,17 @@ export default {
       .then(result => {
         if(result.data.code === 1)
         {
-          ElMessage.success("保存成功！")
+          this.$message.success("保存成功！")
           this.dialogVisible = false
         }
         else
         {
-          ElMessage.error(result.data.msg)
+          this.$message.error(result.data.msg)
         }
       })
       .catch(error =>
       {
-        ElMessage.error("网络繁忙，请稍后再试")
+        this.$message.error("网络繁忙，请稍后再试")
         console.log(error)
       })
     },
@@ -177,7 +176,12 @@ export default {
             return null
         })
         .catch(error => {
-          ElMessage("网络异常，请稍后再试")
+          if(this.user.picture_cache)
+          {
+            this.picture = this.user.picture_cache
+          }
+          console.log(error)
+          this.$message.error("网络异常，请稍后再试")
         })
       }
   },

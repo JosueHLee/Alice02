@@ -79,23 +79,23 @@ export default {
     
   },
   methods: {
-    onSave()
-    {
-      this.$store.dispatch('updateUserSecurity',this.localUser).then(() => {
-        ElMessage.success('保存成功！')
-      }).catch(() => {
-        ElMessage.error('保存失败')
-      })
-      console.log('submit!')
-    },
-    handleClose()
-    {
-      this.dialogVisible = false
-    },
-    onReset()
-    {
-     this.$refs.localUserForm.resetFields()
-    },
+      onSave()
+      {
+        this.$store.dispatch('updateUserSecurity',this.localUser).then(() => {
+          ElMessage.success('保存成功！')
+        }).catch(() => {
+          ElMessage.error('保存失败')
+        })
+        console.log('submit!')
+      },
+      handleClose()
+      {
+        this.dialogVisible = false
+      },
+      onReset()
+      {
+      this.$refs.localUserForm.resetFields()
+      },
     },
     computed: 
     {

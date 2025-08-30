@@ -9,7 +9,7 @@
         v-else-if="isloaded"
         icon="error"
         title="获取商品失败"
-        sub-title="请检查你的网络连接"
+        sub-title="服务器开小差了，请稍后再试"
       >
     </el-result>
   </div>
@@ -63,9 +63,22 @@ export default{
           this.comeToEnd = true
           return
         }
+        if(!this.items)
+        {
+          this.items = []
+        }
         this.items = this.items.concat(result.data.data.records)
         this.total = result.data.data.total
       } catch(error) {
+        if(error.response)
+        {
+          // 请求已发送也有状态码，但状态码超出了2xx
+
+        }
+        else if(error.request)
+        {
+          // 请求已发送但无响应
+        }
         this.$message.error({message: "网络繁忙，请稍后再试", grouping: true})
         console.log(error)
       } finally {

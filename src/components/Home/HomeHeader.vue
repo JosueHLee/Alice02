@@ -123,11 +123,18 @@ import { mapState } from 'vuex'
       try {
         const result = await http.get(this.user.picture, { responseType: "blob"})
         if(result.data != null)
+        {
           this.picture = URL.createObjectURL(result.data)
+        }
+          
         else
           return null
       } catch(error) {
-          console.log(error)
+        if(this.user.picture_cache)
+        {
+          this.picture = this.user.picture_cache
+        }
+        console.log(error)
       }
     },
     methods: {

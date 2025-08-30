@@ -103,7 +103,7 @@ import { mapState } from 'vuex'
         if(this.route.params.uid == this.user.userId)
         {
           this.localUser = { ...this.user }
-          console.log("here")
+          this.picture = this.localUser.picture_cache
         }
         else
         {
@@ -131,7 +131,7 @@ import { mapState } from 'vuex'
             this.localUser = { 
               ...userData.data.data,
               picture: '/api/users/icon/' + userData.data.data.userId,
-              picture_narrow: '/api/users/icon/' + userData.data.data.userId
+              picture_narrow: '/api/users/icon/' + userData.data.data.userId,
             }
             const avatarData = await http.get(this.localUser.picture, { responseType: "blob"})
             if(avatarData.data !== null)

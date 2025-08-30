@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory,createMemoryHistory } from 'vue-router'
 import HomePage from '@/views/HomePage.vue'
 import UserHome from '@/views/UserHome.vue'
 import ItemDetail from '@/views//ItemDetail.vue'
@@ -122,7 +122,7 @@ const routes = [
   },
 
   { 
-    path: '/chat/:uName',
+    path: '/chat/:uid',
     name: 'ChatHome',
     component: ChatHome
   },
@@ -162,8 +162,12 @@ const routes = [
   },
 ]
 
+const history = typeof window !== 'undefined'
+  ? createWebHistory()
+  : createMemoryHistory()
+
 const router = createRouter({
-  history: createWebHistory(),
+  history,
   routes
 })
 router.beforeEach((to, from) => {

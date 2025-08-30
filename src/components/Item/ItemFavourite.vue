@@ -87,7 +87,7 @@ import http from '../../global/http'
             ElMessage.error(itemData.data.msg)
           }
         } catch(error) {
-          ElMessage.error(error)
+          ElMessage.error("网络繁忙，请稍后再试")
           console.log(error)
         }
       }

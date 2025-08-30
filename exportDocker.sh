@@ -1,3 +1,5 @@
+npm run build
+
 VERSION=$(cat dockerVersion)
 NEW_VERSION=$(VERSION + 0.1)
 

@@ -76,14 +76,14 @@ import router from '@/router'
                   picture_cache: null,
                 }
                 // console.log(user)
-                const result = await http.get(this.user.picture, { responseType: "blob"})
-                if(result.data != null)
+                const avatarData = await http.get(user.picture, { responseType: "blob"})
+                if(avatarData.data != null)
                 {
                   user.picture_cache = await new Promise((resolve,reject) => {
                     const reader = new FileReader()
                     reader.onloadend =  () => resolve(reader.result)
                     reader.onerror = reject
-                    reader.readAsDataURL(result.data)
+                    reader.readAsDataURL(avatarData.data)
                   })
                 }
                   

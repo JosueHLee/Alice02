@@ -10,6 +10,7 @@
       label-width="30%"
       :hide-required-asterisk="true"
       size="large"
+      data-test="regisForm"
     >
       <el-form-item class="InputRow" label="用户名" prop="username">
         <el-input v-model="user.username" />
