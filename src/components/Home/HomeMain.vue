@@ -1,12 +1,12 @@
 <template>
-  <div v-loading="!items" class="HomeMain single-main-width" infinite-scroll-delay="30*1000" v-infinite-scroll="load" :infinite-scroll-disabled="comeToEnd">
-    <el-space v-if="loadingSucess" wrap :size="30" class="display-center item-container" >
+  <div v-loading="!isloaded" class="HomeMain single-main-width" infinite-scroll-delay="30*1000" v-infinite-scroll="load" :infinite-scroll-disabled="comeToEnd">
+    <el-space v-if="isloaded && items" wrap :size="30" class="display-center item-container" >
       <ItemCardWithUser v-for="item in items" :key="item" :product="item" :editable="false">
 
       </ItemCardWithUser>
     </el-space>
     <el-result
-        v-else
+        v-else-if="isloaded"
         icon="error"
         title="获取商品失败"
         sub-title="请检查你的网络连接"
@@ -25,12 +25,12 @@ import { ElMessage } from 'element-plus';
 export default{
   data() {
     return {
-      items: new Array,
+      items: null,
       comeToEnd: false,
       currentPage: 1,
       pageSize: 16,
       total: 0,
-      loadingSucess: true
+      isloaded: false
     }
   },
   components: {
@@ -66,8 +66,10 @@ export default{
         this.items = this.items.concat(result.data.data.records)
         this.total = result.data.data.total
       } catch(error) {
-        ElMessage.error("网络繁忙，请稍后再试")
+        this.$message.error({message: "网络繁忙，请稍后再试", grouping: true})
         console.log(error)
+      } finally {
+        this.isloaded = true
       }
     }
   }

@@ -128,7 +128,6 @@ import { mapState } from 'vuex'
           return null
       } catch(error) {
           console.log(error)
-          ElMessage.error("网络繁忙，请稍后再试")
       }
     },
     methods: {

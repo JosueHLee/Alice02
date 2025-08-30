@@ -21,9 +21,12 @@ axios.interceptors.response.use(function (response) {
       router.push({name: 'Login'})
     }
     return response
-  }, function (error) {
+  }, async function (error) {
     // 超出 2xx 范围的状态码都会触发该函数。
     // 对响应错误做点什么
+    await new Promise(r => {setTimeout(() => {
+      r()
+    }, 2*1000);})
     return Promise.reject(error);
   });
 export default axios

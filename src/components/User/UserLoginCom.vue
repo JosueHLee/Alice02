@@ -72,9 +72,21 @@ import router from '@/router'
                 user = {
                   ...userData.data.data,
                   picture: '/api/users/icon/' + userData.data.data.userId,
-                  picture_narrow: '/api/users/icon/' + userData.data.data.userId
+                  picture_narrow: '/api/users/icon/' + userData.data.data.userId,
+                  picture_cache: null,
                 }
                 // console.log(user)
+                const result = await http.get(this.user.picture, { responseType: "blob"})
+                if(result.data != null)
+                {
+                  user.picture_cache = await new Promise((resolve,reject) => {
+                    const reader = new FileReader()
+                    reader.onloadend =  () => resolve(reader.result)
+                    reader.onerror = reject
+                    reader.readAsDataURL(result.data)
+                  })
+                }
+                  
                 this.$store.commit('login',user,token)
                 router.push({name: 'home'})
               }
