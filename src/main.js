@@ -12,7 +12,6 @@ import 'vue-cropper/dist/index.css'
 import '../src/global/global.css'
 import { users as test_user } from './test'
 import http from './global/http'
-import { serverUrl } from './global/global'
 import router from './router'
 window.__VUE_PROD_DEVTOOLS__ = false;
 window.__VUE_PROD_HYDRATION_MISMATCH_DETAILS__ = false;
@@ -54,7 +53,7 @@ const store = createStore({
   actions: {
     async updateUserProfile(context,user) {
       try {
-        const result = http.put(serverUrl + '/api/users/prof',JSON.stringify(user), {headers: {"Content-Type":"application/json"}})
+        const result = http.put('/api/users/prof',JSON.stringify(user), {headers: {"Content-Type":"application/json"}})
         if(result.data.code === 1)
         {
           context.commit('updateUser', user)
@@ -68,7 +67,7 @@ const store = createStore({
     },
     async updateUserSecurity(context,user) {
       try {
-        const result = await http.put(serverUrl + '/api/users',JSON.stringify(user), {headers: {"Content-Type":"application/json"}})
+        const result = await http.put('/api/users',JSON.stringify(user), {headers: {"Content-Type":"application/json"}})
         if(result.data.code === 1)
         {
           context.commit('updateUserSecurity', user)

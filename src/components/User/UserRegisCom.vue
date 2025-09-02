@@ -1,7 +1,7 @@
 <template>
   <div class="full-width">
     <div class="display-center">
-        <h1>登录</h1>
+        <h1>注册</h1>
     </div>
     <el-form
       ref="ruleFormRef"
@@ -10,22 +10,22 @@
       label-width="30%"
       :hide-required-asterisk="true"
       size="large"
-      data-test="regisForm"
+      data-testid="regisForm"
     >
-      <el-form-item class="InputRow" label="用户名" prop="username">
-        <el-input v-model="user.username" />
+      <el-form-item for="username" class="InputRow" label="用户名" prop="username">
+        <el-input data-testid="username" v-model="user.username" />
       </el-form-item>
       <el-form-item class="InputRow" label="电话号码" prop="tel">
-        <el-input v-model="user.tel" />
+        <el-input data-testid="telephone" v-model="user.tel" />
       </el-form-item>
       <el-form-item class="InputRow" label="密码" prop="password" >
-        <el-input v-model="user.password" show-password/>
+        <el-input data-testid="password" v-model="user.password" show-password/>
       </el-form-item>
       <el-form-item class="InputRow" label="确认密码" prop="checkpass" >
-        <el-input v-model="user.checkpass" show-password/>
+        <el-input data-testid="password2" v-model="user.checkpass" show-password/>
       </el-form-item>
       <div class="display-center">
-        <el-button type="primary" @click="onSubmit">提交</el-button>
+        <el-button data-testid="submit" type="primary" @click="onSubmit()" :disable="sending">提交</el-button>
         <el-button @click="notRegis">取消</el-button>
       </div>
     </el-form>
@@ -52,7 +52,7 @@ import router from '@/router/index.js'
             { validator: (rule, value,callback) => {
               if(value === '')
               {
-                callback(new Error( '请输入用户名'))
+                callback(new Error( '用户名不能为空'))
               }
               else if(!/^(?!\d+$)[A-Za-z0-9\u4e00-\u9fa5]+$/.test(value))
               {
@@ -78,7 +78,7 @@ import router from '@/router/index.js'
           ],
           checkpass: [
             { validator: (rule, value, callback) => {
-              if(value === '')
+              if( this.user.password !== '' && value === '')
               {
                 callback(new Error("请再输入一次密码"))
               }
@@ -92,19 +92,30 @@ import router from '@/router/index.js'
               }
               }, trigger: 'blur'}
           ]
-        }
+        },
+        sending: undefined,
+
       }
     },
     methods: {
       async onSubmit() {
-        const post_user = {
-          username: this.user.username,
-          pwd: this.user.password,
-          tel: this.user.tel
-        }
-        await axios.post('/api/users/register',JSON.stringify(post_user),
-          {headers: {'Content-Type': 'application/json'}})
-        .then(result => {
+        
+        // 先检查表单，防止空提交
+        if(!this.$refs.ruleFormRef) return
+        try {
+          await this.$refs.ruleFormRef.validate()
+        // } catch(error) {
+        //   console.log(error)
+        //   return
+        // }
+        // try {
+          const post_user = {
+            username: this.user.username,
+            pwd: this.user.password,
+            tel: this.user.tel
+          }
+          const result = await axios.post('/api/users/register',JSON.stringify(post_user),
+                                          {headers: {'Content-Type': 'application/json'}})
           if(result.data.code === 1)
           {
             ElMessage.success(result.data.msg)
@@ -114,13 +125,22 @@ import router from '@/router/index.js'
           {
             ElMessage.error(result.data.msg)
           }
-        })
-        .catch(error => {
+        } catch (error) {
           ElMessage.error("服务器繁忙请稍后再试")
-        })
+        }
       },
       notRegis() {
         router.push({name: 'Login'})
+      },
+      async out() {
+        try {
+          await this.$refs.ruleFormRef.validate()
+          // console.log("here")
+        } catch(error) {
+          console.log("here")
+          return
+        }
+        console.log("log out")
       }
     },
   }

@@ -19,7 +19,6 @@ export default{
   }
   
 }
-export const serverUrl = 'http://localhost:8086'
 export const state_text = [
   '销售中',
   '已售罄',

@@ -29,6 +29,12 @@ export default defineConfig({
   test: {
     // ... Specify options here.
     environment: 'jsdom', // 使用 jsdom 模拟浏览器环境
-    globals: true,
+    server: {
+      deps: {
+        inline: ['element-plus']
+      },
+    },
+    setupFiles:['vitest.setup.js']
+    
   },
 })
