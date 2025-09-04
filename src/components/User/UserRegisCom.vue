@@ -104,11 +104,11 @@ import router from '@/router/index.js'
         if(!this.$refs.ruleFormRef) return
         try {
           await this.$refs.ruleFormRef.validate()
-        // } catch(error) {
-        //   console.log(error)
-        //   return
-        // }
-        // try {
+        } catch(error) {
+          console.log(error)
+          return
+        }
+        try {
           const post_user = {
             username: this.user.username,
             pwd: this.user.password,

@@ -1,1 +1,0 @@
-export default new Promise((r) => setTimeout(r, 300));

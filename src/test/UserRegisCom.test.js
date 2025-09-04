@@ -1,10 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect,test, vi } from 'vitest';
 import { mount, flushPromises, config } from '@vue/test-utils';
-import ElemenPlus from 'element-plus';
+import ElementPlus from 'element-plus';
 import UserRegisCom from '@/components/User/UserRegisCom.vue';
 import axios from 'axios';
-import { nextTick } from 'vue';
-import router from '@/router';
 
 vi.mock('axios',{spy: true})
 vi.mock('router', () => {
@@ -14,7 +12,7 @@ vi.mock('router', () => {
     }
   }
 })
-config.global.plugins = [ElemenPlus]
+config.global.plugins = [ElementPlus]
 const user = {
   username: 'Alice',
   pwd: '111',

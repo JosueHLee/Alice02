@@ -13,13 +13,13 @@
       style="text-align: center;"
     >
       <el-form-item class="InputRow" label="用户名" prop="username">
-        <el-input v-model="user.username"  placeholder='请输入用户名或电话'/>
+        <el-input data-testid="account" v-model="user.username"  placeholder='请输入用户名或电话'/>
       </el-form-item>
       <el-form-item class="InputRow" label="密码" prop="password">
-        <el-input v-model="user.password" show-password placeholder='请输入密码'/>
+        <el-input data-testid="password" v-model="user.password" show-password placeholder='请输入密码'/>
       </el-form-item>
       <div class="display-center">
-        <el-button type="primary" @click="onSubmit">登录</el-button>
+        <el-button data-testid="login" type="primary" @click="onSubmit">登录</el-button>
       </div>
       <el-link style="margin: 0%;" type="primary" @click="clickRegis">没有账户？立即注册</el-link>
     </el-form>
@@ -53,14 +53,20 @@ import router from '@/router'
     },
     methods: {
       async onSubmit() {
-        const post = {
-          username: /^1[34578][0-9]{9}$/.test(this.user.username)? '': this.user.username,
-          tel: /^1[34578][0-9]{9}$/.test(this.user.username)? this.user.username: '',
-          pwd: this.user.password
-        }
-        let token = null
-        let user = null
         try {
+          await this.$refs.ruleFormRef.validate()
+        } catch(error) {
+          console.log(error)
+          return
+        }
+        try {
+          const post = {
+            username: /^1[34578][0-9]{9}$/.test(this.user.username)? '': this.user.username,
+            tel: /^1[34578][0-9]{9}$/.test(this.user.username)? this.user.username: '',
+            pwd: this.user.password
+          }
+          let token = null
+          let user = null
           const result = await axios.post('/api/users/login', post, {headers: {"Content-Type": "application/json"}})
           if(result.data.code > 0)
           {
