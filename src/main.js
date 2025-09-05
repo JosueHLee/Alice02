@@ -53,15 +53,16 @@ const store = createStore({
   actions: {
     async updateUserProfile(context,user) {
       try {
-        const result = http.put('/api/users/prof',JSON.stringify(user), {headers: {"Content-Type":"application/json"}})
-        if(result.data.code === 1)
+        const result = await http.put('/api/users/prof',JSON.stringify(user), {headers: {"Content-Type":"application/json"}})
+        if(result.data.code == 1)
         {
           context.commit('updateUser', user)
-          return result.data
+          return result.data.data
         }
         else
           return new Error(result.data.msg)
       } catch(error) {
+        console.log(error)
         return new error
       }
     },

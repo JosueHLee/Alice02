@@ -83,6 +83,7 @@ export default {
         username: '',
         picture: '',
         picture_narrow: '',
+        picture_cache: '',
         tel: '132',
         email: '',
         gender: undefined,
@@ -112,6 +113,7 @@ export default {
       this.localUser.username = this.user.username
       this.localUser.picture = this.user.picture
       this.localUser.picture_narrow = this.user.picture_narrow
+      this.localUser.picture_cache = this.user.picture_cache
       this.localUser.tel = this.user.tel
       this.localUser.email = this.user.email
       this.localUser.gender = this.user.gender
@@ -145,27 +147,38 @@ export default {
     {
       this.dialogVisible = false
     },
-    clickSaveImg(data)
+    async clickSaveImg(data)
     {
-      const file = new FormData();
-      file.append('pic', data)
-      http.post('/api/localUsers/icon', file)
-      .then(result => {
-        if(result.data.code === 1)
-        {
-          this.$message.success("保存成功！")
-          this.dialogVisible = false
-        }
-        else
-        {
-          this.$message.error(result.data.msg)
-        }
-      })
-      .catch(error =>
+      try{
+        const file = new FormData();
+        file.append('pic', data)
+        const result = await http.post('/api/users/icon', file)
+          if(result.data.code === 1)
+          {
+            const avatarData = await http.get(this.user.picture, { responseType: "blob"})
+                if(avatarData.data != null)
+                {
+                  this.localUser.picture_cache = await new Promise((resolve,reject) => {
+                    const reader = new FileReader()
+                    reader.onloadend =  () => resolve(reader.result)
+                    reader.onerror = reject
+                    reader.readAsDataURL(avatarData.data)
+                  })
+                  this.$message.success("保存成功！")
+                  this.$store.commit('login',this.localUser)
+                  this.dialogVisible = false
+                }
+            
+          }
+          else
+          {
+            this.$message.error(result.data.msg)
+          }
+      }catch(error)
       {
         this.$message.error("网络繁忙，请稍后再试")
         console.log(error)
-      })
+      }
     },
     getAvator(){
       http.get(this.user.picture, { responseType: "blob"})

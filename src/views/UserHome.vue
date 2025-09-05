@@ -5,7 +5,7 @@
 
       </HomeHeader>
     </div>
-    <div v-if="route.params.uid == user.userId" @mouseenter="isHover=true"
+    <div v-if="route.params.uid == user?.userId" @mouseenter="isHover=true"
           @mouseleave="isHover=false" 
           class="sidebar"
     >

@@ -1,6 +1,6 @@
 <template>
   <div v-loading="!isloaded" class="HomeMain single-main-width" infinite-scroll-delay="30*1000" v-infinite-scroll="load" :infinite-scroll-disabled="comeToEnd">
-    <el-space v-if="isloaded && items" wrap :size="30" class="display-center item-container" >
+    <el-space v-if="isloaded && items != null" wrap :size="30" class="display-center item-container" >
       <ItemCardWithUser v-for="item in items" :key="item" :product="item" :editable="false">
 
       </ItemCardWithUser>

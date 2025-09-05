@@ -24,7 +24,7 @@
           
         </el-descriptions-item>
         <el-descriptions-item label="用户名">{{localUser.username}}</el-descriptions-item> 
-        <el-descriptions-item label="性别"><el-tag size="small">{{ localUser.gender }}</el-tag></el-descriptions-item>
+        <el-descriptions-item label="性别"><el-tag size="small">{{ localUser.gender? localUser.gender:"性别未公开" }}</el-tag></el-descriptions-item>
         <el-descriptions-item label="手机号">
         <el-tag v-if="!localUser.tel" type="info">空</el-tag>
         <span v-else>{{ localUser.tel }}</span>

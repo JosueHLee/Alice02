@@ -73,7 +73,7 @@ import router from '@/router'
             token = result.data.data.token
             localStorage.setItem('token',token)
             const userData = await http.get('/api/users/prof/' + result.data.data.uid)
-            if(userData.data.code === 1)
+            if(userData.data.code == 1)
               {
                 user = {
                   ...userData.data.data,
